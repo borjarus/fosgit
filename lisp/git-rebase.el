@@ -67,7 +67,7 @@
 (require 'easymenu)
 (require 'server)
 (require 'with-editor)
-(require 'magit)
+(require 'fosgit)
 
 (eval-when-compile (require 'recentf))
 
@@ -123,7 +123,7 @@
     (define-key map (kbd "q")    'undefined)
     (define-key map [remap undo] 'git-rebase-undo)
     (define-key map (kbd "RET") 'git-rebase-show-commit)
-    (define-key map (kbd "SPC") 'magit-diff-show-or-scroll-up)
+    (define-key map (kbd "SPC") 'fosgit-diff-show-or-scroll-up)
     (define-key map (kbd "x")   'git-rebase-exec)
     (define-key map (kbd "c")   'git-rebase-pick)
     (define-key map (kbd "r")   'git-rebase-reword)
@@ -276,17 +276,17 @@ current line."
   (let ((inhibit-read-only t)
         (deactivate-mark nil)
         (bounds (git-rebase-region-bounds)))
-    (mapc #'delete-overlay magit-section-highlight-overlays)
+    (mapc #'delete-overlay fosgit-section-highlight-overlays)
     (when bounds
-      (magit-section-make-overlay (car bounds) (cadr bounds)
-                                  'magit-section-heading-selection))
-    (if (and bounds (not magit-keep-region-overlay))
+      (fosgit-section-make-overlay (car bounds) (cadr bounds)
+                                  'fosgit-section-heading-selection))
+    (if (and bounds (not fosgit-keep-region-overlay))
         (funcall (default-value 'redisplay-unhighlight-region-function) rol)
       (funcall (default-value 'redisplay-highlight-region-function)
                start end window rol))))
 
 (defun git-rebase-unhighlight-region (rol)
-  (mapc #'delete-overlay magit-section-highlight-overlays)
+  (mapc #'delete-overlay fosgit-section-highlight-overlays)
   (funcall (default-value 'redisplay-unhighlight-region-function) rol))
 
 (defun git-rebase-kill-line ()
@@ -302,9 +302,9 @@ current line."
 
 (defun git-rebase-insert (rev)
   "Read an arbitrary commit and insert it below current line."
-  (interactive (list (magit-read-branch-or-commit "Insert revision")))
+  (interactive (list (fosgit-read-branch-or-commit "Insert revision")))
   (forward-line)
-  (--if-let (magit-rev-format "%h %s" rev)
+  (--if-let (fosgit-rev-format "%h %s" rev)
       (let ((inhibit-read-only t))
         (insert "pick " it ?\n))
     (user-error "Unknown revision")))
@@ -352,7 +352,7 @@ Like `undo' but works in read-only buffers."
     (goto-char (line-beginning-position))
     (--if-let (and (looking-at git-rebase-line)
                    (match-string 2))
-        (apply #'magit-show-commit it (magit-diff-arguments))
+        (apply #'fosgit-show-commit it (fosgit-diff-arguments))
       (ding))))
 
 (defun git-rebase-backward-line (&optional n)
@@ -368,7 +368,7 @@ Like `forward-line' but go into the opposite direction."
   "Major mode for editing of a Git rebase file.
 
 Rebase files are generated when you run 'git rebase -i' or run
-`magit-interactive-rebase'.  They describe how Git should perform
+`fosgit-interactive-rebase'.  They describe how Git should perform
 the rebase.  See the documentation for git-rebase (e.g., by
 running 'man git-rebase' at the command line) for details."
   :group 'git-rebase
@@ -389,12 +389,12 @@ running 'man git-rebase' at the command line) for details."
   (or (not (buffer-modified-p)) force (y-or-n-p "Abort this rebase? ")))
 
 (defun git-rebase-autostash-save ()
-  (--when-let (magit-file-line (magit-git-dir "rebase-merge/autostash"))
+  (--when-let (fosgit-file-line (fosgit-git-dir "rebase-merge/autostash"))
     (push (cons 'stash it) with-editor-cancel-alist)))
 
 (defun git-rebase-autostash-apply ()
   (--when-let (cdr (assq 'stash with-editor-cancel-alist))
-    (magit-stash-apply it)))
+    (fosgit-stash-apply it)))
 
 (defconst git-rebase-mode-font-lock-keywords
   `(("^\\([efprs]\\|pick\\|reword\\|edit\\|squash\\|fixup\\) \\([^ \n]+\\) \\(.*\\)"

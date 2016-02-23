@@ -1,4 +1,4 @@
-;;; magit-utils.el --- various utilities  -*- lexical-binding: t -*-
+;;; fosgit-utils.el --- various utilities  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
@@ -44,26 +44,26 @@
 (eval-when-compile (require 'ido))
 (declare-function ido-completing-read+ 'ido-completing-read+)
 
-(defvar magit-wip-before-change-mode)
+(defvar fosgit-wip-before-change-mode)
 
 ;;; Options
 
-(defcustom magit-completing-read-function 'magit-builtin-completing-read
+(defcustom fosgit-completing-read-function 'fosgit-builtin-completing-read
   "Function to be called when requesting input from the user.
 
 For Helm users, the simplest way to get Helm completion is to
 turn on `helm-mode' and leave this option set to the default
 value.  However, if you prefer to not use `helm-mode' but still
-want Magit to use Helm for completion, you can set this option to
+want Fosgit to use Helm for completion, you can set this option to
 `helm--completing-read-default'."
-  :group 'magit
-  :type '(radio (function-item magit-builtin-completing-read)
-                (function-item magit-ido-completing-read)
+  :group 'fosgit
+  :type '(radio (function-item fosgit-builtin-completing-read)
+                (function-item fosgit-ido-completing-read)
                 (function-item helm--completing-read-default)
                 (function :tag "Other")))
 
-(defcustom magit-no-confirm nil
-  "A list of symbols for actions Magit should not confirm, or t.
+(defcustom fosgit-no-confirm nil
+  "A list of symbols for actions Fosgit should not confirm, or t.
 
 Many potentially dangerous commands by default ask the user for
 confirmation.  Each of the below symbols stands for an action
@@ -96,7 +96,7 @@ Files:
   `trash' Instead of deleting a file it can also be move to the
   system trash.  Obviously much less dangerous than deleting it.
 
-  Also see option `magit-delete-by-moving-to-trash'.
+  Also see option `fosgit-delete-by-moving-to-trash'.
 
   `resurrect' A deleted file can easily be resurrected by
   \"deleting\" the deletion, which is done using the same command
@@ -146,13 +146,13 @@ Global settings:
   for confirmation for any of these actions, you are still better
   of adding all of the respective symbols individually.
 
-  When `magit-wip-before-change-mode' is enabled then these actions
+  When `fosgit-wip-before-change-mode' is enabled then these actions
   can fairly easily be undone: `discard', `reverse',
   `stage-all-changes', and `unstage-all-changes'.  If and only if
   this mode is enabled then `safe-with-wip' has the same effect
   as adding all of these symbols individually."
-  :package-version '(magit . "2.1.0")
-  :group 'magit
+  :package-version '(fosgit . "2.1.0")
+  :group 'fosgit
   :type '(choice (const :tag "No confirmation needed" t)
                  (set (const reverse)           (const discard)
                       (const rename)            (const resurrect)
@@ -163,13 +163,13 @@ Global settings:
                       (const stage-all-changes) (const unstage-all-changes)
                       (const safe-with-wip))))
 
-(defcustom magit-ellipsis ?…
+(defcustom fosgit-ellipsis ?…
   "Character used to abbreviate text."
-  :package-version '(magit . "2.1.0")
-  :group 'magit-modes
+  :package-version '(fosgit . "2.1.0")
+  :group 'fosgit-modes
   :type 'character)
 
-(defcustom magit-update-other-window-delay 0.2
+(defcustom fosgit-update-other-window-delay 0.2
   "Delay before automatically updating the other window.
 
 When moving around in certain buffers certain other buffers,
@@ -182,21 +182,21 @@ To prevent that, updating the revision buffer is delayed, and
 this option controls for how long.  For optimal experience you
 might have to adjust this delay and/or the keyboard repeat rate
 and delay of your graphical environment or operating system."
-  :package-version '(magit . "2.3.0")
-  :group 'magit-modes
+  :package-version '(fosgit . "2.3.0")
+  :group 'fosgit-modes
   :type 'number)
 
 ;;; User Input
 
-(defun magit-completing-read
+(defun fosgit-completing-read
   (prompt collection &optional predicate require-match initial-input hist def)
-  "Magit wrapper around `completing-read' or an alternative function.
+  "Fosgit wrapper around `completing-read' or an alternative function.
 
-Option `magit-completing-read-function' can be used to wrap
+Option `fosgit-completing-read-function' can be used to wrap
 around another `completing-read'-like function.  Unless it
 doesn't have the exact same signature, an additional wrapper is
 required.  Even if it has the same signature it might be a good
-idea to wrap it, so that `magit-prompt-with-default' can be used.
+idea to wrap it, so that `fosgit-prompt-with-default' can be used.
 
 See `completing-read' for the meanings of the arguments, but note
 that this wrapper makes the following changes:
@@ -209,13 +209,13 @@ that this wrapper makes the following changes:
 
 - \": \" is appended to PROMPT.
 
-- If a `magit-completing-read-function' is used which in turn
-  uses `magit-prompt-with-completion' and DEF is non-nil, then
+- If a `fosgit-completing-read-function' is used which in turn
+  uses `fosgit-prompt-with-completion' and DEF is non-nil, then
   PROMPT is modified to end with \" (default DEF): \".
 
 The use of another completing function and/or wrapper obviously
 results in additional differences."
-  (let ((reply (funcall magit-completing-read-function
+  (let ((reply (funcall fosgit-completing-read-function
                         (concat prompt ": ") collection predicate
                         require-match initial-input hist def)))
     (if (string= reply "")
@@ -224,14 +224,14 @@ results in additional differences."
           nil)
       reply)))
 
-(defun magit-builtin-completing-read
+(defun fosgit-builtin-completing-read
   (prompt choices &optional predicate require-match initial-input hist def)
-  "Magit wrapper for standard `completing-read' function."
-  (completing-read (magit-prompt-with-default prompt def)
+  "Fosgit wrapper for standard `completing-read' function."
+  (completing-read (fosgit-prompt-with-default prompt def)
                    choices predicate require-match
                    initial-input hist def))
 
-(defun magit-ido-completing-read
+(defun fosgit-ido-completing-read
   (prompt choices &optional predicate require-match initial-input hist def)
   "Ido-based `completing-read' almost-replacement.
 
@@ -242,28 +242,28 @@ same name."
   (if (require 'ido-completing-read+ nil t)
       (ido-completing-read+ prompt choices predicate require-match
                             initial-input hist def)
-    (display-warning 'magit "ido-completing-read+ is not installed
+    (display-warning 'fosgit "ido-completing-read+ is not installed
 
-To use Ido completion with Magit you need to install the
+To use Ido completion with Fosgit you need to install the
 third-party `ido-completing-read+' packages.  Falling
 back to built-in `completing-read' for now." :error)
-    (magit-builtin-completing-read prompt choices predicate require-match
+    (fosgit-builtin-completing-read prompt choices predicate require-match
                                    initial-input hist def)))
 
-(defun magit-prompt-with-default (prompt def)
+(defun fosgit-prompt-with-default (prompt def)
   (if (and def (> (length prompt) 2)
            (string-equal ": " (substring prompt -2)))
       (format "%s (default %s): " (substring prompt 0 -2) def)
     prompt))
 
-(defvar magit-minibuffer-local-ns-map
+(defvar fosgit-minibuffer-local-ns-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\s" 'magit-whitespace-disallowed)
-    (define-key map "\t" 'magit-whitespace-disallowed)
+    (define-key map "\s" 'fosgit-whitespace-disallowed)
+    (define-key map "\t" 'fosgit-whitespace-disallowed)
     map))
 
-(defun magit-whitespace-disallowed ()
+(defun fosgit-whitespace-disallowed ()
   "Beep to tell the user that whitespace is not allowed."
   (interactive)
   (ding)
@@ -271,7 +271,7 @@ back to built-in `completing-read' for now." :error)
   (setq defining-kbd-macro nil)
   (force-mode-line-update))
 
-(defun magit-read-string (prompt &optional initial-input history default-value
+(defun fosgit-read-string (prompt &optional initial-input history default-value
                                  inherit-input-method no-whitespace)
   "Read a string from the minibuffer, prompting with string PROMPT.
 
@@ -288,8 +288,8 @@ This is similar to `read-string', but
       (setq default-value nil)))
   (let* ((minibuffer-completion-table nil)
          (val (read-from-minibuffer
-               (magit-prompt-with-default (concat prompt ": ") default-value)
-               initial-input (and no-whitespace magit-minibuffer-local-ns-map)
+               (fosgit-prompt-with-default (concat prompt ": ") default-value)
+               initial-input (and no-whitespace fosgit-minibuffer-local-ns-map)
                nil history default-value inherit-input-method)))
     (when (and (string= val "") default-value)
       (setq val default-value))
@@ -299,13 +299,13 @@ This is similar to `read-string', but
            (user-error "Input contains whitespace"))
           (t val))))
 
-(defun magit-read-string-ns (prompt &optional initial-input history
+(defun fosgit-read-string-ns (prompt &optional initial-input history
                                     default-value inherit-input-method)
-  "Call `magit-read-string' with non-nil NO-WHITESPACE."
-  (magit-read-string prompt initial-input history default-value
+  "Call `fosgit-read-string' with non-nil NO-WHITESPACE."
+  (fosgit-read-string prompt initial-input history default-value
                      inherit-input-method t))
 
-(defmacro magit-read-char-case (prompt verbose &rest clauses)
+(defmacro fosgit-read-char-case (prompt verbose &rest clauses)
   (declare (indent 2)
            (debug (form form &rest (characterp form body))))
   `(pcase (read-char-choice
@@ -315,18 +315,18 @@ This is similar to `read-string', but
            ',(mapcar 'car clauses))
      ,@(--map `(,(car it) ,@(cddr it)) clauses)))
 
-(cl-defun magit-confirm (action &optional prompt prompt-n (items nil sitems))
+(cl-defun fosgit-confirm (action &optional prompt prompt-n (items nil sitems))
   (declare (indent defun))
   (setq prompt-n (format (concat (or prompt-n prompt) "? ") (length items))
-        prompt   (format (concat (or prompt (magit-confirm-make-prompt action))
+        prompt   (format (concat (or prompt (fosgit-confirm-make-prompt action))
                                  "? ")
                          (car items)))
   (cond ((and (not (eq action t))
-              (or (eq magit-no-confirm t)
+              (or (eq fosgit-no-confirm t)
                   (memq action
-                        `(,@magit-no-confirm
-                          ,@(and magit-wip-before-change-mode
-                                 (memq 'safe-with-wip magit-no-confirm)
+                        `(,@fosgit-no-confirm
+                          ,@(and fosgit-wip-before-change-mode
+                                 (memq 'safe-with-wip fosgit-no-confirm)
                                  `(discard reverse
                                    stage-all-changes
                                    unstage-all-changes))))))
@@ -336,7 +336,7 @@ This is similar to `read-string', but
         ((= (length items) 1)
          (and (y-or-n-p prompt) items))
         ((> (length items) 1)
-         (let ((buffer (get-buffer-create " *Magit Confirm*")))
+         (let ((buffer (get-buffer-create " *Fosgit Confirm*")))
            (with-current-buffer buffer
              (with-current-buffer-window
               buffer (cons 'display-buffer-below-selected
@@ -349,23 +349,23 @@ This is similar to `read-string', but
               (dolist (item items)
                 (insert item "\n"))))))))
 
-(defun magit-confirm-files (action files &optional prompt)
+(defun fosgit-confirm-files (action files &optional prompt)
   (when files
     (unless prompt
-      (setq prompt (magit-confirm-make-prompt action)))
-    (magit-confirm action
+      (setq prompt (fosgit-confirm-make-prompt action)))
+    (fosgit-confirm action
       (concat prompt " %s")
       (concat prompt " %i files")
       files)))
 
-(defun magit-confirm-make-prompt (action)
+(defun fosgit-confirm-make-prompt (action)
   (let ((prompt (symbol-name action)))
     (replace-regexp-in-string
      "-" " " (concat (upcase (substring prompt 0 1)) (substring prompt 1)))))
 
 ;;; Text Utilities
 
-(defmacro magit-bind-match-strings (varlist string &rest body)
+(defmacro fosgit-bind-match-strings (varlist string &rest body)
   "Bind variables to submatches according to VARLIST then evaluate BODY.
 Bind the symbols in VARLIST to submatches of the current match
 data, starting with 1 and incrementing by 1 for each symbol.  If
@@ -379,17 +379,17 @@ as STRING."
                (--map (list it (list 'match-string (cl-incf i) s)) varlist))
          ,@body))))
 
-(defun magit-delete-line ()
+(defun fosgit-delete-line ()
   "Delete the rest of the current line."
   (delete-region (point) (1+ (line-end-position))))
 
-(defun magit-delete-match (&optional num)
+(defun fosgit-delete-match (&optional num)
   "Delete text matched by last search.
 If optional NUM is specified only delete that subexpression."
   (delete-region (match-beginning (or num 0))
                  (match-end (or num 0))))
 
-(defun magit-file-line (file)
+(defun fosgit-file-line (file)
   "Return the first line of FILE as a string."
   (when (file-regular-p file)
     (with-temp-buffer
@@ -397,7 +397,7 @@ If optional NUM is specified only delete that subexpression."
       (buffer-substring-no-properties (point-min)
                                       (line-end-position)))))
 
-(defun magit-file-lines (file &optional keep-empty-lines)
+(defun fosgit-file-lines (file &optional keep-empty-lines)
   "Return a list of strings containing one element per line in FILE.
 Unless optional argument KEEP-EMPTY-LINES is t, trim all empty lines."
   (when (file-regular-p file)
@@ -405,10 +405,10 @@ Unless optional argument KEEP-EMPTY-LINES is t, trim all empty lines."
       (insert-file-contents file)
       (split-string (buffer-string) "\n" (not keep-empty-lines)))))
 
-;;; magit-utils.el ends soon
-(provide 'magit-utils)
+;;; fosgit-utils.el ends soon
+(provide 'fosgit-utils)
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
-;;; magit-utils.el ends here
+;;; fosgit-utils.el ends here

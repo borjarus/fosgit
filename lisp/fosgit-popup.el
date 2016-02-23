@@ -1,11 +1,11 @@
-;;; magit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
+;;; fosgit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
 
-;; This library was inspired by and replaces library `magit-key-mode',
+;; This library was inspired by and replaces library `fosgit-key-mode',
 ;; which was written by Phil Jackson <phil@shellarchive.co.uk> and is
 ;; distributed under the GNU General Public License version 3 or later.
 
@@ -54,7 +54,7 @@
 (require 'format-spec)
 
 (and (require 'async-bytecomp nil t)
-     (memq 'magit (bound-and-true-p async-bytecomp-allowed-packages))
+     (memq 'fosgit (bound-and-true-p async-bytecomp-allowed-packages))
      (fboundp 'async-bytecomp-package-mode)
      (async-bytecomp-package-mode 1))
 
@@ -63,58 +63,58 @@
 (declare-function Man-next-section 'man)
 
 ;; For the `:variable' event type.
-(declare-function magit-call-git 'magit-process)
-(declare-function magit-git-string 'magit-git)
-(declare-function magit-refresh 'magit-mode)
-(declare-function magit-set 'magit-git)
+(declare-function fosgit-call-git 'fosgit-process)
+(declare-function fosgit-git-string 'fosgit-git)
+(declare-function fosgit-refresh 'fosgit-mode)
+(declare-function fosgit-set 'fosgit-git)
 
 ;; For branch actions.
-(declare-function magit-branch-set-face 'magit-git)
-(declare-function magit-local-branch-p 'magit-git)
+(declare-function fosgit-branch-set-face 'fosgit-git)
+(declare-function fosgit-local-branch-p 'fosgit-git)
 
 ;;; Settings
 ;;;; Custom Groups
 
-(defgroup magit-popup nil
+(defgroup fosgit-popup nil
   "Infix arguments with a popup as feedback."
   :group 'bindings)
 
-(defgroup magit-popup-faces nil
-  "Faces used by Magit-Popup."
-  :group 'magit-popup)
+(defgroup fosgit-popup-faces nil
+  "Faces used by Fosgit-Popup."
+  :group 'fosgit-popup)
 
 ;;;; Custom Options
 
-(defcustom magit-popup-display-buffer-action '((display-buffer-below-selected))
+(defcustom fosgit-popup-display-buffer-action '((display-buffer-below-selected))
   "The action used to display a popup buffer.
 
 Popup buffers are displayed using `display-buffer' with the value
 of this option as ACTION argument.  You can also set this to nil
 and instead add an entry to `display-buffer-alist'."
-  :package-version '(magit-popup . "2.4.0")
-  :group 'magit-popup
+  :package-version '(fosgit-popup . "2.4.0")
+  :group 'fosgit-popup
   :type 'sexp)
 
-(defcustom magit-popup-manpage-package
+(defcustom fosgit-popup-manpage-package
   (if (memq system-type '(windows-nt ms-dos)) 'woman 'man)
   "The package used to display manpages.
 One of `man' or `woman'."
-  :group 'magit-popup
+  :group 'fosgit-popup
   :type '(choice (const man) (const woman)))
 
-(defcustom magit-popup-show-help-echo t
+(defcustom fosgit-popup-show-help-echo t
   "Show usage information in the echo area."
-  :group 'magit-popup
+  :group 'fosgit-popup
   :type 'boolean)
 
-(defcustom magit-popup-show-common-commands t
+(defcustom fosgit-popup-show-common-commands t
   "Initially show section with commands common to all popups.
 This section can also be toggled temporarily using \
-\\<magit-popup-mode-map>\\[magit-popup-toggle-show-common-commands]."
-  :group 'magit-popup
+\\<fosgit-popup-mode-map>\\[fosgit-popup-toggle-show-common-commands]."
+  :group 'fosgit-popup
   :type 'boolean)
 
-(defcustom magit-popup-use-prefix-argument 'disabled
+(defcustom fosgit-popup-use-prefix-argument 'disabled
   "Control how prefix arguments affect infix argument popups.
 
 This option controls the effect that the use of a prefix argument
@@ -135,7 +135,7 @@ that without users being aware of it could lead to tears.
            directly invoke the popup's default action.
 
 `nil'      Ignore prefix arguments."
-  :group 'magit-popup
+  :group 'fosgit-popup
   :type '(choice
           (const :tag "Call default action instead of showing popup" default)
           (const :tag "Show popup instead of calling default action" popup)
@@ -144,167 +144,167 @@ that without users being aware of it could lead to tears.
 
 ;;;; Custom Faces
 
-(defface magit-popup-heading
+(defface fosgit-popup-heading
   '((t :inherit font-lock-keyword-face))
   "Face for key mode header lines."
-  :group 'magit-popup-faces)
+  :group 'fosgit-popup-faces)
 
-(defface magit-popup-key
+(defface fosgit-popup-key
   '((t :inherit font-lock-builtin-face))
   "Face for key mode buttons."
-  :group 'magit-popup-faces)
+  :group 'fosgit-popup-faces)
 
-(defface magit-popup-argument
+(defface fosgit-popup-argument
   '((t :inherit font-lock-warning-face))
   "Face used to display enabled arguments in popups."
-  :group 'magit-popup-faces)
+  :group 'fosgit-popup-faces)
 
-(defface magit-popup-disabled-argument
+(defface fosgit-popup-disabled-argument
   '((t :inherit shadow))
   "Face used to display disabled arguments in popups."
-  :group 'magit-popup-faces)
+  :group 'fosgit-popup-faces)
 
-(defface magit-popup-option-value
+(defface fosgit-popup-option-value
   '((t :inherit font-lock-string-face))
   "Face used to display option values in popups."
-  :group 'magit-popup-faces)
+  :group 'fosgit-popup-faces)
 
 ;;;; Keymap
 
-(defvar magit-popup-mode-map
+(defvar fosgit-popup-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap self-insert-command] 'magit-invoke-popup-action)
-    (define-key map [?- t]        'magit-invoke-popup-switch)
-    (define-key map [?= t]        'magit-invoke-popup-option)
-    (define-key map [?\C-c ?\C-c] 'magit-popup-set-default-arguments)
-    (define-key map [?\C-x ?\C-s] 'magit-popup-save-default-arguments)
-    (define-key map [?\C-g]       'magit-popup-quit)
-    (define-key map [??]          'magit-popup-help)
-    (define-key map [?\C-h ?i]    'magit-popup-info)
-    (define-key map [?\C-t]       'magit-popup-toggle-show-common-commands)
+    (define-key map [remap self-insert-command] 'fosgit-invoke-popup-action)
+    (define-key map [?- t]        'fosgit-invoke-popup-switch)
+    (define-key map [?= t]        'fosgit-invoke-popup-option)
+    (define-key map [?\C-c ?\C-c] 'fosgit-popup-set-default-arguments)
+    (define-key map [?\C-x ?\C-s] 'fosgit-popup-save-default-arguments)
+    (define-key map [?\C-g]       'fosgit-popup-quit)
+    (define-key map [??]          'fosgit-popup-help)
+    (define-key map [?\C-h ?i]    'fosgit-popup-info)
+    (define-key map [?\C-t]       'fosgit-popup-toggle-show-common-commands)
     (define-key map [?\d]         'backward-button)
     (define-key map [?\C-p]       'backward-button)
     (define-key map [?\t]         'forward-button)
     (define-key map [?\C-n]       'forward-button)
     (define-key map [?\r]         'push-button)
     map)
-  "Keymap for `magit-popup-mode'.
+  "Keymap for `fosgit-popup-mode'.
 
-\\<magit-popup-mode-map>\
+\\<fosgit-popup-mode-map>\
 This keymap contains bindings common to all popups.  A section
 listing these commands can be shown or hidden using \
-\\[magit-popup-toggle-show-common-commands].
+\\[fosgit-popup-toggle-show-common-commands].
 
 The prefix used to toggle any switch can be changed by binding
-another key to `magit-invoke-popup-switch'.  Likewise binding
-another key to `magit-invoke-popup-option' changes the prefixed
+another key to `fosgit-invoke-popup-switch'.  Likewise binding
+another key to `fosgit-invoke-popup-option' changes the prefixed
 used to set any option.  The two prefixes have to be different.
 If you change these bindings you should also change the `prefix'
-property of the button types `magit-popup-switch-button' and
-`magit-popup-option-button'.
+property of the button types `fosgit-popup-switch-button' and
+`fosgit-popup-option-button'.
 
 If you change any other binding, then you might have to also edit
-`magit-popup-common-commands' for things to align correctly in
+`fosgit-popup-common-commands' for things to align correctly in
 the section listing these commands.
 
 Never bind an alphabetic character in this keymap or you might
 make it impossible to invoke certain actions.")
 
-(defvar magit-popup-common-commands
-  '(("Set defaults"          magit-popup-set-default-arguments)
-    ("View popup manual"     magit-popup-info)
-    ("Toggle this section"   magit-popup-toggle-show-common-commands)
-    ("Save defaults"         magit-popup-save-default-arguments)
-    ("    Popup help prefix" magit-popup-help)
-    ("Abort"                 magit-popup-quit)))
+(defvar fosgit-popup-common-commands
+  '(("Set defaults"          fosgit-popup-set-default-arguments)
+    ("View popup manual"     fosgit-popup-info)
+    ("Toggle this section"   fosgit-popup-toggle-show-common-commands)
+    ("Save defaults"         fosgit-popup-save-default-arguments)
+    ("    Popup help prefix" fosgit-popup-help)
+    ("Abort"                 fosgit-popup-quit)))
 
 ;;;; Buttons
 
-(define-button-type 'magit-popup-button
+(define-button-type 'fosgit-popup-button
   'face nil
   'action (lambda (button)
             (funcall (button-get button 'function)
                      (button-get button 'event))))
 
-(define-button-type 'magit-popup-switch-button
-  'supertype 'magit-popup-button
-  'function  'magit-invoke-popup-switch
+(define-button-type 'fosgit-popup-switch-button
+  'supertype 'fosgit-popup-button
+  'function  'fosgit-invoke-popup-switch
   'property  :switches
   'heading   "Switches\n"
-  'formatter 'magit-popup-format-argument-button
+  'formatter 'fosgit-popup-format-argument-button
   'format    " %k %d (%a)"
   'prefix    ?-
   'maxcols   1)
 
-(define-button-type 'magit-popup-option-button
-  'supertype 'magit-popup-button
-  'function  'magit-invoke-popup-option
+(define-button-type 'fosgit-popup-option-button
+  'supertype 'fosgit-popup-button
+  'function  'fosgit-invoke-popup-option
   'property  :options
   'heading   "Options\n"
-  'formatter 'magit-popup-format-argument-button
+  'formatter 'fosgit-popup-format-argument-button
   'format    " %k %d (%a%v)"
   'prefix    ?=
   'maxcols   1)
 
-(define-button-type 'magit-popup-variable-button
-  'supertype 'magit-popup-button
-  'function  'magit-invoke-popup-action
+(define-button-type 'fosgit-popup-variable-button
+  'supertype 'fosgit-popup-button
+  'function  'fosgit-invoke-popup-action
   'property  :variables
   'heading   "Variables\n"
-  'formatter 'magit-popup-format-variable-button
+  'formatter 'fosgit-popup-format-variable-button
   'format    " %k %d"
   'prefix    nil
   'maxcols   1)
 
-(define-button-type 'magit-popup-action-button
-  'supertype 'magit-popup-button
-  'function  'magit-invoke-popup-action
+(define-button-type 'fosgit-popup-action-button
+  'supertype 'fosgit-popup-button
+  'function  'fosgit-invoke-popup-action
   'property  :actions
   'heading   "Actions\n"
-  'formatter 'magit-popup-format-action-button
+  'formatter 'fosgit-popup-format-action-button
   'format    " %k %d"
   'prefix    nil
   'maxcols   :max-action-columns)
 
-(define-button-type 'magit-popup-command-button
-  'supertype 'magit-popup-action-button
-  'formatter 'magit-popup-format-command-button
+(define-button-type 'fosgit-popup-command-button
+  'supertype 'fosgit-popup-action-button
+  'formatter 'fosgit-popup-format-command-button
   'action    (lambda (button)
                (let ((command (button-get button 'function)))
                  (unless (eq command 'push-button)
                    (call-interactively command)))))
 
-(define-button-type 'magit-popup-internal-command-button
-  'supertype 'magit-popup-command-button
+(define-button-type 'fosgit-popup-internal-command-button
+  'supertype 'fosgit-popup-command-button
   'heading   "Common Commands\n"
   'maxcols   3)
 
 ;;; Events
 
-(defvar-local magit-this-popup nil
+(defvar-local fosgit-this-popup nil
   "The popup which is currently active.
 This is intended for internal use only.
-Don't confuse this with `magit-current-popup'.")
+Don't confuse this with `fosgit-current-popup'.")
 
-(defvar-local magit-this-popup-events nil
+(defvar-local fosgit-this-popup-events nil
   "The events known to the active popup.
 This is intended for internal use only.
-Don't confuse this with `magit-current-popup-args'.")
+Don't confuse this with `fosgit-current-popup-args'.")
 
-(defun magit-popup-get (prop)
+(defun fosgit-popup-get (prop)
   "While a popup is active, get the value of PROP."
   (if (memq prop '(:switches :options :variables :actions))
-      (plist-get magit-this-popup-events prop)
-    (plist-get (symbol-value magit-this-popup) prop)))
+      (plist-get fosgit-this-popup-events prop)
+    (plist-get (symbol-value fosgit-this-popup) prop)))
 
-(defun magit-popup-put (prop val)
+(defun fosgit-popup-put (prop val)
   "While a popup is active, set the value of PROP to VAL."
   (if (memq prop '(:switches :options :variables :actions))
-      (setq magit-this-popup-events
-            (plist-put magit-this-popup-events prop val))
+      (setq fosgit-this-popup-events
+            (plist-put fosgit-this-popup-events prop val))
     (error "Property %s isn't supported" prop)))
 
-(defvar magit-current-popup nil
+(defvar fosgit-current-popup nil
   "The popup from which this editing command was invoked.
 
 Use this inside the `interactive' form of a popup aware command
@@ -312,7 +312,7 @@ to determine whether it was invoked from a popup and if so from
 which popup.  If the current command was invoked without the use
 of a popup then this is nil.")
 
-(defvar magit-current-popup-args nil
+(defvar fosgit-current-popup-args nil
   "The value of the popup arguments for this editing command.
 
 If the current command was invoked from a popup, then this is
@@ -322,16 +322,16 @@ explicitly set during this invocation.
 
 When the value is nil, then that can be because no argument is
 set, or because the current command wasn't invoked from a popup;
-consult `magit-current-popup' to tell the difference.
+consult `fosgit-current-popup' to tell the difference.
 
 Generally it is better to use `NAME-arguments', which is created
-by `magit-define-popup', instead of this variable or the function
+by `fosgit-define-popup', instead of this variable or the function
 by the same name, because `NAME-argument' uses the default value
 for the arguments when the editing command is invoked directly
 instead of from a popup.  When the command is bound in several
 popups that might not be feasible though.")
 
-(defun magit-current-popup-args (&rest filter)
+(defun fosgit-current-popup-args (&rest filter)
   "Return the value of the popup arguments for this editing command.
 
 The value is the same as that of the variable by the same name
@@ -340,73 +340,73 @@ of regexps; only arguments that match one of them are returned.
 The first element of FILTER may also be `:not' in which case
 only arguments that don't match any of the regexps are returned,
 or `:only' which doesn't change the behaviour."
-  (let ((-compare-fn (lambda (a b) (magit-popup-arg-match b a))))
+  (let ((-compare-fn (lambda (a b) (fosgit-popup-arg-match b a))))
     (-filter (if (eq (car filter) :not)
                  (lambda (arg) (not (-contains? (cdr filter) arg)))
                (when (eq (car filter) :only)
                  (pop filter))
                (lambda (arg) (-contains? filter arg)))
-             magit-current-popup-args)))
+             fosgit-current-popup-args)))
 
-(defun magit-popup-arg-match (pattern string)
+(defun fosgit-popup-arg-match (pattern string)
   (if (or (string-match-p "=$" pattern)
           (string-match-p "^-[A-Z]$" pattern))
       (string-match (format "^%s\\(.*\\)$" pattern) string)
     (string-equal string pattern)))
 
-(cl-defstruct magit-popup-event key dsc arg fun use val)
+(cl-defstruct fosgit-popup-event key dsc arg fun use val)
 
-(defun magit-popup-event-keydsc (ev)
-  (let ((key (magit-popup-event-key ev)))
+(defun fosgit-popup-event-keydsc (ev)
+  (let ((key (fosgit-popup-event-key ev)))
     (key-description (if (vectorp key) key (vector key)))))
 
-(defun magit-popup-lookup (event type)
-  (--first (equal (magit-popup-event-key it) event)
-           (-filter 'magit-popup-event-p (magit-popup-get type))))
+(defun fosgit-popup-lookup (event type)
+  (--first (equal (fosgit-popup-event-key it) event)
+           (-filter 'fosgit-popup-event-p (fosgit-popup-get type))))
 
-(defun magit-popup-get-args ()
-  (--mapcat (when (and (magit-popup-event-p it)
-                       (magit-popup-event-use it))
+(defun fosgit-popup-get-args ()
+  (--mapcat (when (and (fosgit-popup-event-p it)
+                       (fosgit-popup-event-use it))
               (list (format "%s%s"
-                            (magit-popup-event-arg it)
-                            (or (magit-popup-event-val it) ""))))
-            (append (magit-popup-get :switches)
-                    (magit-popup-get :options))))
+                            (fosgit-popup-event-arg it)
+                            (or (fosgit-popup-event-val it) ""))))
+            (append (fosgit-popup-get :switches)
+                    (fosgit-popup-get :options))))
 
-(defmacro magit-popup-convert-events (def form)
+(defmacro fosgit-popup-convert-events (def form)
   (declare (indent 1) (debug (form form)))
   `(--map (if (or (null it) (stringp it) (functionp it)) it ,form) ,def))
 
-(defun magit-popup-convert-switches (val def)
-  (magit-popup-convert-events def
+(defun fosgit-popup-convert-switches (val def)
+  (fosgit-popup-convert-events def
     (let ((a (nth 2 it)))
-      (make-magit-popup-event
+      (make-fosgit-popup-event
        :key (car it) :dsc (cadr it) :arg a
        :use (and (member a val) t)))))
 
-(defun magit-popup-convert-options (val def)
-  (magit-popup-convert-events def
+(defun fosgit-popup-convert-options (val def)
+  (fosgit-popup-convert-events def
     (let* ((a (nth 2 it))
            (r (format "^%s\\(.*\\)" a))
            (v (--first (string-match r it) val)))
-      (make-magit-popup-event
+      (make-fosgit-popup-event
        :key (car it)  :dsc (cadr it) :arg a
        :use (and v t) :val (and v (match-string 1 v))
        :fun (or (nth 3 it) 'read-from-minibuffer)))))
 
-(defun magit-popup-convert-variables (_val def)
-  (magit-popup-convert-events def
-    (make-magit-popup-event
+(defun fosgit-popup-convert-variables (_val def)
+  (fosgit-popup-convert-events def
+    (make-fosgit-popup-event
      :key (car it) :dsc (cadr it) :fun (nth 2 it) :arg (nth 3 it))))
 
-(defun magit-popup-convert-actions (_val def)
-  (magit-popup-convert-events def
-    (make-magit-popup-event
+(defun fosgit-popup-convert-actions (_val def)
+  (fosgit-popup-convert-events def
+    (make-fosgit-popup-event
      :key (car it) :dsc (cadr it) :fun (nth 2 it))))
 
 ;;; Define
 
-(defmacro magit-define-popup (name doc &rest args)
+(defmacro fosgit-define-popup (name doc &rest args)
   "Define a popup command named NAME.
 
 NAME should begin with the package prefix and by convention end
@@ -426,11 +426,11 @@ popup arguments.  It can be customized from within the popup or
 using the Custom interface.
 
 The function `SHORTNAME-arguments' is a wrapper around the
-variable `magit-current-popup-args', both of which are intended
+variable `fosgit-current-popup-args', both of which are intended
 to be used inside the `interactive' form of commands commonly
 invoked from the popup `NAME'.  When such a command is invoked
 from that popup, then the function `SHORTNAME-arguments' returns
-the value of the variable `magit-current-popup-args'; however
+the value of the variable `fosgit-current-popup-args'; however
 when the command is invoked directly, then it returns the default
 value of the variable `SHORTNAME-arguments'.
 
@@ -441,7 +441,7 @@ group the same way it is done when directly using `defcustom'.
 Optional argument MODE is deprecated, instead use the keyword
 arguments `:setup-function' and/or `:refresh-function'.  If MODE
 is non-nil, then it specifies the mode used by the popup buffer,
-instead of the default, which is `magit-popup-mode'.
+instead of the default, which is `fosgit-popup-mode'.
 
 The remaining arguments should have the form
 
@@ -453,7 +453,7 @@ usually specified in that order):
 `:actions'
   The actions which can be invoked from the popup.  VALUE is a
   list whose members have the form (KEY DESC COMMAND), see
-  `magit-define-popup-action' for details.
+  `fosgit-define-popup-action' for details.
 
   Actions are regular Emacs commands, which usually have an
   `interactive' form setup to consume the values of the popup
@@ -475,14 +475,14 @@ usually specified in that order):
 `:default-action'
   The default action of the popup which is used directly instead
   of displaying the popup buffer, when the popup is invoked with
-  a prefix argument.  Also see `magit-popup-use-prefix-argument'
+  a prefix argument.  Also see `fosgit-popup-use-prefix-argument'
   and `:use-prefix', which can be used to inverse the meaning of
   the prefix argument.
 
 `:use-prefix'
   Controls when to display the popup buffer and when to invoke
   the default action (if any) directly.  This overrides the
-  global default set using `magit-popup-use-prefix-argument'.
+  global default set using `fosgit-popup-use-prefix-argument'.
   The value, if specified, should be one of `default' or `popup'.
 
 `:max-action-columns'
@@ -494,12 +494,12 @@ usually specified in that order):
 `:switches'
   The popup arguments which can be toggled on and off.  VALUE
   is a list whose members have the form (KEY DESC SWITCH), see
-  `magit-define-popup-switch' for details.
+  `fosgit-define-popup-switch' for details.
 
 `:options'
   The popup arguments which take a value, as in \"--opt=OPTVAL\".
   VALUE is a list whose members have the form (KEY DESC OPTION
-  READER), see `magit-define-popup-option' for details.
+  READER), see `fosgit-define-popup-option' for details.
 
 `:default-arguments'
   The default arguments, a list of switches (which are then
@@ -517,13 +517,13 @@ usually specified in that order):
 
 `:setup-function'
   When this function is specified, then it is used instead of
-  `magit-popup-default-setup'.
+  `fosgit-popup-default-setup'.
 
 `:refresh-function'
   When this function is specified, then it is used instead of
-  calling `magit-popup-insert-section' three times with symbols
-  `magit-popup-switch-button', `magit-popup-option-button', and
-  finally `magit-popup-action-button' as argument.
+  calling `fosgit-popup-insert-section' three times with symbols
+  `fosgit-popup-switch-button', `fosgit-popup-option-button', and
+  finally `fosgit-popup-action-button' as argument.
 
 `:man-page'
   The name of the manpage to be displayed when the user requests
@@ -543,31 +543,31 @@ usually specified in that order):
     `(progn
        (defun ,name (&optional arg) ,doc
          (interactive "P")
-         (magit-invoke-popup ',name ,mode arg))
+         (fosgit-invoke-popup ',name ,mode arg))
        (defvar ,name
          (list :variable ',opt ,@args))
-       (magit-define-popup-keys-deferred ',name)
+       (fosgit-define-popup-keys-deferred ',name)
        ,@(when opt
            `((defcustom ,opt (plist-get ,name :default-arguments)
                ""
                ,@(and grp (list :group grp))
                :type '(repeat (string :tag "Argument")))
              (defun ,opt ()
-               (if (eq magit-current-popup ',name)
-                   magit-current-popup-args
+               (if (eq fosgit-current-popup ',name)
+                   fosgit-current-popup-args
                  ,opt))
              (put ',opt 'definition-name ',name))))))
 
-(defun magit-define-popup-switch (popup key desc switch
+(defun fosgit-define-popup-switch (popup key desc switch
                                         &optional enable at prepend)
   "In POPUP, define KEY as SWITCH.
 
-POPUP is a popup command defined using `magit-define-popup'.
+POPUP is a popup command defined using `fosgit-define-popup'.
 SWITCH is a string representing an argument that takes no value.
 KEY is a character representing the second event in the sequence
 of keystrokes used to toggle the argument.  (The first event, the
 prefix, is shared among all switches, defaults to -, and can be
-changed in `magit-popup-mode-keymap').
+changed in `fosgit-popup-mode-keymap').
 
 DESC is a string describing the purpose of the argument, it is
 displayed in the popup.
@@ -580,19 +580,19 @@ placed first.  If optional AT is non-nil then it should be the
 KEY of another switch already defined for POPUP, the argument
 is then placed before or after AT, depending on PREPEND."
   (declare (indent defun))
-  (magit-define-popup-key popup :switches key
+  (fosgit-define-popup-key popup :switches key
     (list desc switch enable) at prepend))
 
-(defun magit-define-popup-option (popup key desc option
+(defun fosgit-define-popup-option (popup key desc option
                                         &optional reader value at prepend)
   "In POPUP, define KEY as OPTION.
 
-POPUP is a popup command defined using `magit-define-popup'.
+POPUP is a popup command defined using `fosgit-define-popup'.
 OPTION is a string representing an argument that takes a value.
 KEY is a character representing the second event in the sequence
 of keystrokes used to set the argument's value.  (The first
 event, the prefix, is shared among all options, defaults to =,
-and can be changed in `magit-popup-mode-keymap').
+and can be changed in `fosgit-popup-mode-keymap').
 
 DESC is a string describing the purpose of the argument, it is
 displayed in the popup.
@@ -606,16 +606,16 @@ placed first.  If optional AT is non-nil then it should be the
 KEY of another option already defined for POPUP, the argument
 is then placed before or after AT, depending on PREPEND."
   (declare (indent defun))
-  (magit-define-popup-key popup :options key
+  (fosgit-define-popup-key popup :options key
     (list desc option reader value) at prepend))
 
-(defun magit-define-popup-variable (popup key desc command formatter
+(defun fosgit-define-popup-variable (popup key desc command formatter
                                           &optional at prepend)
   "In POPUP, define KEY as COMMAND.
 
-POPUP is a popup command defined using `magit-define-popup'.
-COMMAND is a command which calls `magit-popup-set-variable'.
-FORMATTER is a function which calls `magit-popup-format-variable'.
+POPUP is a popup command defined using `fosgit-define-popup'.
+COMMAND is a command which calls `fosgit-popup-set-variable'.
+FORMATTER is a function which calls `fosgit-popup-format-variable'.
 These two functions have to be called with the same arguments.
 
 KEY is a character representing the event used interactively call
@@ -630,14 +630,14 @@ placed first.  If optional AT is non-nil then it should be the
 KEY of another command already defined for POPUP, the command
 is then placed before or after AT, depending on PREPEND."
   (declare (indent defun))
-  (magit-define-popup-key popup :variables key
+  (fosgit-define-popup-key popup :variables key
     (list desc command formatter) at prepend))
 
-(defun magit-define-popup-action (popup key desc command
+(defun fosgit-define-popup-action (popup key desc command
                                         &optional at prepend)
   "In POPUP, define KEY as COMMAND.
 
-POPUP is a popup command defined using `magit-define-popup'.
+POPUP is a popup command defined using `fosgit-define-popup'.
 COMMAND can be any command but should usually consume the popup
 arguments in its `interactive' form.
 KEY is a character representing the event used invoke the action,
@@ -652,38 +652,38 @@ placed first.  If optional AT is non-nil then it should be the
 KEY of another command already defined for POPUP, the command
 is then placed before or after AT, depending on PREPEND."
   (declare (indent defun))
-  (magit-define-popup-key popup :actions key
+  (fosgit-define-popup-key popup :actions key
     (list desc command) at prepend))
 
-(defun magit-define-popup-sequence-action
+(defun fosgit-define-popup-sequence-action
     (popup key desc command &optional at prepend)
-  "Like `magit-define-popup-action' but for `:sequence-action'."
+  "Like `fosgit-define-popup-action' but for `:sequence-action'."
   (declare (indent defun))
-  (magit-define-popup-key popup :sequence-actions key
+  (fosgit-define-popup-key popup :sequence-actions key
     (list desc command) at prepend))
 
-(defconst magit-popup-type-plural-alist
+(defconst fosgit-popup-type-plural-alist
   '((:switch . :switches)
     (:option . :options)
     (:variable . :variables)
     (:action . :actions)
     (:sequence-action . :sequence-actions)))
 
-(defun magit-popup-pluralize-type (type)
-  (or (cdr (assq type magit-popup-type-plural-alist))
+(defun fosgit-popup-pluralize-type (type)
+  (or (cdr (assq type fosgit-popup-type-plural-alist))
       type))
 
-(defun magit-define-popup-key
+(defun fosgit-define-popup-key
     (popup type key def &optional at prepend)
   "In POPUP, define KEY as an action, switch, or option.
 It's better to use one of the specialized functions
-  `magit-define-popup-action',
-  `magit-define-popup-sequence-action',
-  `magit-define-popup-switch',
-  `magit-define-popup-option', or
-  `magit-define-popup-variable'."
+  `fosgit-define-popup-action',
+  `fosgit-define-popup-sequence-action',
+  `fosgit-define-popup-switch',
+  `fosgit-define-popup-option', or
+  `fosgit-define-popup-variable'."
   (declare (indent defun))
-  (setq type (magit-popup-pluralize-type type))
+  (setq type (fosgit-popup-pluralize-type type))
   (if (memq type '(:switches :options :variables :actions :sequence-actions))
       (if (boundp popup)
           (let* ((plist (symbol-value popup))
@@ -706,32 +706,32 @@ It's better to use one of the specialized functions
                             (append value (list elt)))))
             (set popup (plist-put plist type value)))
         (push (list type key def at prepend)
-              (get popup 'magit-popup-deferred)))
+              (get popup 'fosgit-popup-deferred)))
     (error "Unknown popup event type: %s" type)))
 
-(defun magit-define-popup-keys-deferred (popup)
-  (dolist (args (get popup 'magit-popup-deferred))
+(defun fosgit-define-popup-keys-deferred (popup)
+  (dolist (args (get popup 'fosgit-popup-deferred))
     (condition-case err
-        (apply #'magit-define-popup-key popup args)
+        (apply #'fosgit-define-popup-key popup args)
       ((debug error)
-       (display-warning 'magit (error-message-string err) :error))))
-  (put popup 'magit-popup-deferred nil))
+       (display-warning 'fosgit (error-message-string err) :error))))
+  (put popup 'fosgit-popup-deferred nil))
 
-(defun magit-change-popup-key (popup type from to)
+(defun fosgit-change-popup-key (popup type from to)
   "In POPUP, bind TO to what FROM was bound to.
 TYPE is one of `:action', `:sequence-action', `:switch', or
 `:option'.  Bind TO and unbind FROM, both are characters."
   (--if-let (assoc from (plist-get (symbol-value popup)
-                                   (magit-popup-pluralize-type type)))
+                                   (fosgit-popup-pluralize-type type)))
       (setcar it to)
-    (message "magit-change-popup-key: FROM key %c is unbound" from)))
+    (message "fosgit-change-popup-key: FROM key %c is unbound" from)))
 
-(defun magit-remove-popup-key (popup type key)
+(defun fosgit-remove-popup-key (popup type key)
   "In POPUP, remove KEY's binding of TYPE.
-POPUP is a popup command defined using `magit-define-popup'.
+POPUP is a popup command defined using `fosgit-define-popup'.
 TYPE is one of `:action', `:sequence-action', `:switch', or
 `:option'.  KEY is the character which is to be unbound."
-  (setq type (magit-popup-pluralize-type type))
+  (setq type (fosgit-popup-pluralize-type type))
   (let* ((plist (symbol-value popup))
          (alist (plist-get plist type))
          (value (assoc key alist)))
@@ -739,110 +739,110 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
 
 ;;; Invoke
 
-(defvar-local magit-popup-previous-winconf nil)
+(defvar-local fosgit-popup-previous-winconf nil)
 
-(defun magit-invoke-popup (popup mode arg)
+(defun fosgit-invoke-popup (popup mode arg)
   (let* ((def     (symbol-value popup))
          (val     (symbol-value (plist-get def :variable)))
          (default (plist-get def :default-action))
          (local   (plist-get def :use-prefix))
-         (use-prefix (or local magit-popup-use-prefix-argument)))
+         (use-prefix (or local fosgit-popup-use-prefix-argument)))
     (cond
-     ((and arg (eq magit-popup-use-prefix-argument 'disabled))
-      (customize-option-other-window 'magit-popup-use-prefix-argument)
+     ((and arg (eq fosgit-popup-use-prefix-argument 'disabled))
+      (customize-option-other-window 'fosgit-popup-use-prefix-argument)
       (error (concat "The meaning of prefix arguments has changed.  "
                      "Please explicitly enable their use again.")))
      ((or (and (eq use-prefix 'default) arg)
           (and (eq use-prefix 'popup) (not arg)))
       (if default
-          (let ((magit-current-popup (list popup 'default))
-                (magit-current-popup-args
-                 (let ((magit-this-popup popup)
-                       (magit-this-popup-events nil))
-                   (magit-popup-default-setup val def)
-                   (magit-popup-get-args))))
+          (let ((fosgit-current-popup (list popup 'default))
+                (fosgit-current-popup-args
+                 (let ((fosgit-this-popup popup)
+                       (fosgit-this-popup-events nil))
+                   (fosgit-popup-default-setup val def)
+                   (fosgit-popup-get-args))))
             (when (and arg (listp arg))
               (setq current-prefix-arg (and (not (= (car arg) 4))
                                             (list (/ (car arg) 4)))))
             (call-interactively default))
         (message "%s has no default action; showing popup instead." popup)
-        (magit-popup-mode-setup popup mode)))
+        (fosgit-popup-mode-setup popup mode)))
      ((memq use-prefix '(disabled default popup nil))
-      (magit-popup-mode-setup popup mode)
-      (when magit-popup-show-help-echo
+      (fosgit-popup-mode-setup popup mode)
+      (when fosgit-popup-show-help-echo
         (message (concat "Type C-h i to view popup manual, "
                          "? to describe an argument or action."))))
      (local
       (error "Invalid :use-prefix popup property value: %s" use-prefix))
      (t
-      (error "Invalid magit-popup-use-prefix-argument value: %s" use-prefix)))))
+      (error "Invalid fosgit-popup-use-prefix-argument value: %s" use-prefix)))))
 
-(defun magit-invoke-popup-switch (event)
+(defun fosgit-invoke-popup-switch (event)
   (interactive (list last-command-event))
-  (--if-let (magit-popup-lookup event :switches)
+  (--if-let (fosgit-popup-lookup event :switches)
       (progn
-        (setf (magit-popup-event-use it)
-              (not (magit-popup-event-use it)))
-        (magit-refresh-popup-buffer))
+        (setf (fosgit-popup-event-use it)
+              (not (fosgit-popup-event-use it)))
+        (fosgit-refresh-popup-buffer))
     (user-error "%c isn't bound to any switch" event)))
 
-(defun magit-invoke-popup-option (event)
+(defun fosgit-invoke-popup-option (event)
   (interactive (list last-command-event))
-  (--if-let (magit-popup-lookup event :options)
+  (--if-let (fosgit-popup-lookup event :options)
       (progn
-        (if (magit-popup-event-use it)
-            (setf (magit-popup-event-use it) nil)
-          (let* ((arg (magit-popup-event-arg it))
+        (if (fosgit-popup-event-use it)
+            (setf (fosgit-popup-event-use it) nil)
+          (let* ((arg (fosgit-popup-event-arg it))
                  (val (funcall
-                       (magit-popup-event-fun it)
+                       (fosgit-popup-event-fun it)
                        (concat arg (unless (string-match-p "=$" arg) ": "))
-                       (magit-popup-event-val it))))
-            (setf (magit-popup-event-use it) t)
-            (setf (magit-popup-event-val it) val)))
-        (magit-refresh-popup-buffer))
+                       (fosgit-popup-event-val it))))
+            (setf (fosgit-popup-event-use it) t)
+            (setf (fosgit-popup-event-val it) val)))
+        (fosgit-refresh-popup-buffer))
     (user-error "%c isn't bound to any option" event)))
 
-(defun magit-invoke-popup-action (event)
+(defun fosgit-invoke-popup-action (event)
   (interactive (list last-command-event))
-  (let ((action   (magit-popup-lookup event :actions))
-        (variable (magit-popup-lookup event :variables)))
+  (let ((action   (fosgit-popup-lookup event :actions))
+        (variable (fosgit-popup-lookup event :variables)))
     (if (or action variable)
-        (let ((magit-current-popup magit-this-popup)
-              (magit-current-popup-args (magit-popup-get-args))
-              (command (magit-popup-event-fun (or action variable))))
+        (let ((fosgit-current-popup fosgit-this-popup)
+              (fosgit-current-popup-args (fosgit-popup-get-args))
+              (command (fosgit-popup-event-fun (or action variable))))
           (when action
-            (magit-popup-quit))
+            (fosgit-popup-quit))
           (call-interactively command)
           (setq this-command command)
           (unless action
-            (magit-refresh-popup-buffer)))
+            (fosgit-refresh-popup-buffer)))
       (if (eq event ?q)
-          (magit-popup-quit)
+          (fosgit-popup-quit)
         (user-error "%c isn't bound to any action" event)))))
 
-(defun magit-popup-set-variable
+(defun fosgit-popup-set-variable
     (variable choices &optional default other)
-  (--if-let (--if-let (magit-git-string "config" "--local" variable)
+  (--if-let (--if-let (fosgit-git-string "config" "--local" variable)
                 (cadr (member it choices))
               (car choices))
-      (magit-set it variable)
-    (magit-call-git "config" "--unset" variable))
-  (magit-refresh)
+      (fosgit-set it variable)
+    (fosgit-call-git "config" "--unset" variable))
+  (fosgit-refresh)
   (message "%s %s" variable
-           (magit-popup-format-variable-1 variable choices default other)))
+           (fosgit-popup-format-variable-1 variable choices default other)))
 
-(defun magit-popup-quit ()
+(defun fosgit-popup-quit ()
   "Quit the current popup command without invoking an action."
   (interactive)
-  (let ((winconf magit-popup-previous-winconf))
-    (if (derived-mode-p 'magit-popup-mode)
+  (let ((winconf fosgit-popup-previous-winconf))
+    (if (derived-mode-p 'fosgit-popup-mode)
         (kill-buffer)
-      (magit-popup-help-mode -1)
-      (kill-local-variable 'magit-popup-previous-winconf))
+      (fosgit-popup-help-mode -1)
+      (kill-local-variable 'fosgit-popup-previous-winconf))
     (when winconf
       (set-window-configuration winconf))))
 
-(defun magit-popup-read-number (prompt &optional default)
+(defun fosgit-popup-read-number (prompt &optional default)
   "Like `read-number' but DEFAULT may be a numeric string."
   (read-number prompt (if (stringp default)
                           (string-to-number default)
@@ -850,7 +850,7 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
 
 ;;; Save
 
-(defun magit-popup-set-default-arguments (arg)
+(defun fosgit-popup-set-default-arguments (arg)
   "Set default value for the arguments for the current popup.
 Then close the popup without invoking an action; unless a prefix
 argument is used in which case the popup remains open.
@@ -858,11 +858,11 @@ argument is used in which case the popup remains open.
 For a popup named `NAME-popup' that usually means setting the
 value of the custom option `NAME-arguments'."
   (interactive "P")
-  (customize-set-variable (magit-popup-get :variable)
-                          (magit-popup-get-args))
-  (unless arg (magit-popup-quit)))
+  (customize-set-variable (fosgit-popup-get :variable)
+                          (fosgit-popup-get-args))
+  (unless arg (fosgit-popup-quit)))
 
-(defun magit-popup-save-default-arguments (arg)
+(defun fosgit-popup-save-default-arguments (arg)
   "Save default value for the arguments for the current popup.
 Then close the popup without invoking an action; unless a prefix
 argument is used in which case the popup remains open.
@@ -870,58 +870,58 @@ argument is used in which case the popup remains open.
 For a popup named `NAME-popup' that usually means saving the
 value of the custom option `NAME-arguments'."
   (interactive "P")
-  (customize-save-variable (magit-popup-get :variable)
-                           (magit-popup-get-args))
-  (unless arg (magit-popup-quit)))
+  (customize-save-variable (fosgit-popup-get :variable)
+                           (fosgit-popup-get-args))
+  (unless arg (fosgit-popup-quit)))
 
 ;;; Help
 
-(defun magit-popup-toggle-show-common-commands ()
+(defun fosgit-popup-toggle-show-common-commands ()
   "Show or hide an additional section with common commands.
 The commands listed in this section are common to all popups
-and are defined in `magit-popup-mode-map' (which see)."
+and are defined in `fosgit-popup-mode-map' (which see)."
   (interactive)
-  (setq magit-popup-show-common-commands
-        (not magit-popup-show-common-commands))
-  (magit-refresh-popup-buffer)
+  (setq fosgit-popup-show-common-commands
+        (not fosgit-popup-show-common-commands))
+  (fosgit-refresh-popup-buffer)
   (fit-window-to-buffer))
 
-(defun magit-popup-help ()
+(defun fosgit-popup-help ()
   "Show help for the argument or action at point."
   (interactive)
-  (let* ((man (magit-popup-get :man-page))
+  (let* ((man (fosgit-popup-get :man-page))
          (key (read-key-sequence
                (concat "Describe key" (and man " (? for manpage)") ": ")))
          (int (aref key (1- (length key))))
          (def (or (lookup-key (current-local-map)  key t)
                   (lookup-key (current-global-map) key))))
     (pcase def
-      (`magit-invoke-popup-switch
-       (magit-popup-manpage man (magit-popup-lookup int :switches)))
-      (`magit-invoke-popup-option
-       (magit-popup-manpage man (magit-popup-lookup int :options)))
-      (`magit-popup-help
-       (magit-popup-manpage man nil))
+      (`fosgit-invoke-popup-switch
+       (fosgit-popup-manpage man (fosgit-popup-lookup int :switches)))
+      (`fosgit-invoke-popup-option
+       (fosgit-popup-manpage man (fosgit-popup-lookup int :options)))
+      (`fosgit-popup-help
+       (fosgit-popup-manpage man nil))
       ((or `self-insert-command
-           `magit-invoke-popup-action)
-       (setq def (or (magit-popup-lookup int :actions)
-                     (magit-popup-lookup int :variables)))
+           `fosgit-invoke-popup-action)
+       (setq def (or (fosgit-popup-lookup int :actions)
+                     (fosgit-popup-lookup int :variables)))
        (if def
-           (magit-popup-describe-function (magit-popup-event-fun def))
+           (fosgit-popup-describe-function (fosgit-popup-event-fun def))
          (ding)
          (message nil)))
       (`nil (ding)
             (message nil))
-      (_    (magit-popup-describe-function def)))))
+      (_    (fosgit-popup-describe-function def)))))
 
-(defun magit-popup-manpage (topic arg)
+(defun fosgit-popup-manpage (topic arg)
   (unless topic
     (user-error "No man page associated with %s"
-                (magit-popup-get :man-page)))
+                (fosgit-popup-get :man-page)))
   (when arg
-    (setq arg (magit-popup-event-arg arg)))
+    (setq arg (fosgit-popup-event-arg arg)))
   (let ((winconf (current-window-configuration)) buffer)
-    (pcase magit-popup-manpage-package
+    (pcase fosgit-popup-manpage-package
       (`woman (delete-other-windows)
               (split-window-below)
               (with-no-warnings ; display-buffer-function is obsolete
@@ -935,8 +935,8 @@ and are defined in `magit-popup-mode-map' (which see)."
               (split-window-below)
               (set-window-buffer (selected-window) buffer)))
     (with-current-buffer buffer
-      (setq magit-popup-previous-winconf winconf)
-      (magit-popup-help-mode)
+      (setq fosgit-popup-previous-winconf winconf)
+      (fosgit-popup-help-mode)
       (fit-window-to-buffer (next-window))
       (if (and arg
                (Man-find-section "OPTIONS")
@@ -948,7 +948,7 @@ and are defined in `magit-popup-mode-map' (which see)."
           (goto-char (1+ (match-beginning 0)))
         (goto-char (point-min))))))
 
-(defun magit-popup-describe-function (function)
+(defun fosgit-popup-describe-function (function)
   (let ((winconf (current-window-configuration)))
     (delete-other-windows)
     (split-window-below)
@@ -959,104 +959,104 @@ and are defined in `magit-popup-mode-map' (which see)."
         (describe-function function)))
     (fit-window-to-buffer)
     (other-window 1)
-    (setq magit-popup-previous-winconf winconf)
-    (magit-popup-help-mode)))
+    (setq fosgit-popup-previous-winconf winconf)
+    (fosgit-popup-help-mode)))
 
-(defun magit-popup-info ()
+(defun fosgit-popup-info ()
   "Show the popup manual."
   (interactive)
   (let ((winconf (current-window-configuration)))
     (delete-other-windows)
     (split-window-below)
-    (info "(magit-popup.info)Usage")
-    (magit-popup-help-mode)
-    (setq magit-popup-previous-winconf winconf))
-  (magit-popup-help-mode)
+    (info "(fosgit-popup.info)Usage")
+    (fosgit-popup-help-mode)
+    (setq fosgit-popup-previous-winconf winconf))
+  (fosgit-popup-help-mode)
   (fit-window-to-buffer (next-window)))
 
-(define-minor-mode magit-popup-help-mode
+(define-minor-mode fosgit-popup-help-mode
   "Auxiliary minor mode used to restore previous window configuration.
 When some sort of help buffer is created from within a popup,
 then this minor mode is turned on in that buffer, so that when
 the user quits it, the previous window configuration is also
 restored."
-  :keymap '(([remap Man-quit]    . magit-popup-quit)
-            ([remap Info-exit]   . magit-popup-quit)
-            ([remap quit-window] . magit-popup-quit)))
+  :keymap '(([remap Man-quit]    . fosgit-popup-quit)
+            ([remap Info-exit]   . fosgit-popup-quit)
+            ([remap quit-window] . fosgit-popup-quit)))
 
 ;;; Modes
 
-(define-derived-mode magit-popup-mode fundamental-mode "MagitPopup"
+(define-derived-mode fosgit-popup-mode fundamental-mode "FosgitPopup"
   "Major mode for infix argument popups."
-  :mode 'magit-popup
+  :mode 'fosgit-popup
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (setq-local scroll-margin 0)
-  (setq-local magit-popup-show-common-commands magit-popup-show-common-commands)
+  (setq-local fosgit-popup-show-common-commands fosgit-popup-show-common-commands)
   (hack-dir-local-variables-non-file-buffer))
 
-(put 'magit-popup-mode 'mode-class 'special)
+(put 'fosgit-popup-mode 'mode-class 'special)
 
-(defun magit-popup-default-setup (val def)
-  (if (--when-let (magit-popup-get :sequence-predicate)
+(defun fosgit-popup-default-setup (val def)
+  (if (--when-let (fosgit-popup-get :sequence-predicate)
         (funcall it))
-      (magit-popup-put :actions (magit-popup-convert-actions
-                                 val (magit-popup-get :sequence-actions)))
-    (magit-popup-put :variables (magit-popup-convert-variables
+      (fosgit-popup-put :actions (fosgit-popup-convert-actions
+                                 val (fosgit-popup-get :sequence-actions)))
+    (fosgit-popup-put :variables (fosgit-popup-convert-variables
                                  val (plist-get def :variables)))
-    (magit-popup-put :switches  (magit-popup-convert-switches
+    (fosgit-popup-put :switches  (fosgit-popup-convert-switches
                                  val (plist-get def :switches)))
-    (magit-popup-put :options   (magit-popup-convert-options
+    (fosgit-popup-put :options   (fosgit-popup-convert-options
                                  val (plist-get def :options)))
-    (magit-popup-put :actions   (magit-popup-convert-actions
+    (fosgit-popup-put :actions   (fosgit-popup-convert-actions
                                  val (plist-get def :actions)))))
 
-(defun magit-popup-mode-setup (popup mode)
+(defun fosgit-popup-mode-setup (popup mode)
   (let ((val (symbol-value (plist-get (symbol-value popup) :variable)))
         (def (symbol-value popup)))
-    (magit-popup-mode-display-buffer (get-buffer-create
+    (fosgit-popup-mode-display-buffer (get-buffer-create
                                       (format "*%s*" popup))
-                                     (or mode 'magit-popup-mode))
-    (setq magit-this-popup popup)
-    (if (bound-and-true-p magit-popup-setup-hook) ; obsolete
-        (run-hook-with-args 'magit-popup-setup-hook val def)
-      (funcall (or (magit-popup-get :setup-function)
-                   'magit-popup-default-setup)
+                                     (or mode 'fosgit-popup-mode))
+    (setq fosgit-this-popup popup)
+    (if (bound-and-true-p fosgit-popup-setup-hook) ; obsolete
+        (run-hook-with-args 'fosgit-popup-setup-hook val def)
+      (funcall (or (fosgit-popup-get :setup-function)
+                   'fosgit-popup-default-setup)
                val def)))
-  (magit-refresh-popup-buffer)
+  (fosgit-refresh-popup-buffer)
   (fit-window-to-buffer nil nil (line-number-at-pos (point-max))))
 
-(defun magit-popup-mode-display-buffer (buffer mode)
+(defun fosgit-popup-mode-display-buffer (buffer mode)
   (let ((winconf (current-window-configuration)))
-    (select-window (display-buffer buffer magit-popup-display-buffer-action))
+    (select-window (display-buffer buffer fosgit-popup-display-buffer-action))
     (funcall mode)
-    (setq magit-popup-previous-winconf winconf)))
+    (setq fosgit-popup-previous-winconf winconf)))
 
-(defvar magit-refresh-popup-buffer-hook nil
-  "Hook run by `magit-refresh-popup-buffer'.
+(defvar fosgit-refresh-popup-buffer-hook nil
+  "Hook run by `fosgit-refresh-popup-buffer'.
 
 The hook is run right after inserting the representation of the
 popup events but before optionally inserting the representation
 of events shared by all popups and before point is adjusted.")
 
-(defun magit-refresh-popup-buffer ()
+(defun fosgit-refresh-popup-buffer ()
   (let* ((inhibit-read-only t)
          (button (button-at (point)))
          (prefix (and button (button-get button 'prefix)))
          (event  (and button (button-get button 'event))))
     (erase-buffer)
     (save-excursion
-      (--if-let (magit-popup-get :refresh-function)
+      (--if-let (fosgit-popup-get :refresh-function)
           (funcall it)
-        (magit-popup-insert-section 'magit-popup-switch-button)
-        (magit-popup-insert-section 'magit-popup-option-button)
-        (magit-popup-insert-section 'magit-popup-variable-button)
-        (magit-popup-insert-section 'magit-popup-action-button))
-      (run-hooks 'magit-refresh-popup-buffer-hook)
-      (when magit-popup-show-common-commands
-        (magit-popup-insert-command-section
-         'magit-popup-internal-command-button
-         magit-popup-common-commands)))
+        (fosgit-popup-insert-section 'fosgit-popup-switch-button)
+        (fosgit-popup-insert-section 'fosgit-popup-option-button)
+        (fosgit-popup-insert-section 'fosgit-popup-variable-button)
+        (fosgit-popup-insert-section 'fosgit-popup-action-button))
+      (run-hooks 'fosgit-refresh-popup-buffer-hook)
+      (when fosgit-popup-show-common-commands
+        (fosgit-popup-insert-command-section
+         'fosgit-popup-internal-command-button
+         fosgit-popup-common-commands)))
     (set-buffer-modified-p nil)
     (when event
       (while (and (ignore-errors (forward-button 1))
@@ -1066,31 +1066,31 @@ of events shared by all popups and before point is adjusted.")
 
 ;;; Draw
 
-(defvar magit-popup-min-padding 3
+(defvar fosgit-popup-min-padding 3
   "Minimal amount of whitespace between columns in popup buffers.")
 
-(defun magit-popup-insert-section (type &optional spec heading)
+(defun fosgit-popup-insert-section (type &optional spec heading)
   (if (not spec)
-      (progn (setq spec (magit-popup-get (button-type-get type 'property)))
+      (progn (setq spec (fosgit-popup-get (button-type-get type 'property)))
              (when spec
                (if (or (stringp (car spec))
                        (functionp (car spec)))
                    (--each (--partition-by-header
                             (or (stringp it) (functionp it))
                             spec)
-                     (magit-popup-insert-section type (cdr it) (car it)))
-                 (magit-popup-insert-section type spec))))
+                     (fosgit-popup-insert-section type (cdr it) (car it)))
+                 (fosgit-popup-insert-section type spec))))
     (let* ((formatter (button-type-get type 'formatter))
            (items (mapcar (lambda (ev)
                             (and ev (or (funcall formatter type ev) '(""))))
-                          (or spec (magit-popup-get
+                          (or spec (fosgit-popup-get
                                     (button-type-get type 'property)))))
            (maxcols (button-type-get type 'maxcols))
-           (pred (magit-popup-get :sequence-predicate)))
+           (pred (fosgit-popup-get :sequence-predicate)))
       (if (and pred (funcall pred))
           (setq maxcols nil)
         (cl-typecase maxcols
-          (keyword (setq maxcols (magit-popup-get maxcols)))
+          (keyword (setq maxcols (fosgit-popup-get maxcols)))
           (symbol  (setq maxcols (symbol-value maxcols)))))
       (when items
         (if (functionp heading)
@@ -1098,13 +1098,13 @@ of events shared by all popups and before point is adjusted.")
               (insert heading ?\n))
           (unless heading
             (setq heading (button-type-get type 'heading)))
-          (insert (propertize heading 'face 'magit-popup-heading))
+          (insert (propertize heading 'face 'fosgit-popup-heading))
           (unless (string-match "\n$" heading)
             (insert "\n")))
         (when heading
           (let ((colwidth
                  (+ (apply 'max (mapcar (lambda (e) (length (car e))) items))
-                    magit-popup-min-padding)))
+                    fosgit-popup-min-padding)))
             (dolist (item items)
               (unless (bolp)
                 (let ((padding (- colwidth (% (current-column) colwidth))))
@@ -1120,145 +1120,145 @@ of events shared by all popups and before point is adjusted.")
                   (insert ?\s)))))
           (insert (if (= (char-before) ?\n) "\n" "\n\n")))))))
 
-(defun magit-popup-format-argument-button (type ev)
+(defun fosgit-popup-format-argument-button (type ev)
   (list (format-spec
          (button-type-get type 'format)
          `((?k . ,(propertize (concat
                                (--when-let (button-type-get type 'prefix)
                                  (char-to-string it))
-                               (magit-popup-event-keydsc ev))
-                              'face 'magit-popup-key))
-           (?d . ,(magit-popup-event-dsc ev))
-           (?a . ,(propertize (magit-popup-event-arg ev)
-                              'face (if (magit-popup-event-use ev)
-                                        'magit-popup-argument
-                                      'magit-popup-disabled-argument)))
-           (?v . ,(let ((val (magit-popup-event-val ev)))
-                    (if (and (magit-popup-event-use ev)
+                               (fosgit-popup-event-keydsc ev))
+                              'face 'fosgit-popup-key))
+           (?d . ,(fosgit-popup-event-dsc ev))
+           (?a . ,(propertize (fosgit-popup-event-arg ev)
+                              'face (if (fosgit-popup-event-use ev)
+                                        'fosgit-popup-argument
+                                      'fosgit-popup-disabled-argument)))
+           (?v . ,(let ((val (fosgit-popup-event-val ev)))
+                    (if (and (fosgit-popup-event-use ev)
                              (not (equal val "")))
                         (propertize (format "\"%s\"" val)
-                                    'face 'magit-popup-option-value)
+                                    'face 'fosgit-popup-option-value)
                       "")))))
-        'type type 'event (magit-popup-event-key ev)))
+        'type type 'event (fosgit-popup-event-key ev)))
 
-(defun magit-popup-format-variable-button (type ev)
+(defun fosgit-popup-format-variable-button (type ev)
   (list (format-spec
          (button-type-get type 'format)
-         `((?k . ,(propertize (magit-popup-event-keydsc ev)
-                              'face 'magit-popup-key))
-           (?d . ,(funcall (magit-popup-event-arg ev)))))
-        'type type 'event (magit-popup-event-key ev)))
+         `((?k . ,(propertize (fosgit-popup-event-keydsc ev)
+                              'face 'fosgit-popup-key))
+           (?d . ,(funcall (fosgit-popup-event-arg ev)))))
+        'type type 'event (fosgit-popup-event-key ev)))
 
-(defun magit-popup-format-variable
+(defun fosgit-popup-format-variable
     (variable choices &optional default other width)
   (concat variable
           (if width (make-string (- width (length variable)) ?\s) " ")
-          (magit-popup-format-variable-1 variable choices default other)))
+          (fosgit-popup-format-variable-1 variable choices default other)))
 
-(defun magit-popup-format-variable-1
+(defun fosgit-popup-format-variable-1
     (variable choices &optional default other)
-  (let ((local  (magit-git-string "config" "--local"  variable))
-        (global (magit-git-string "config" "--global" variable)))
+  (let ((local  (fosgit-git-string "config" "--local"  variable))
+        (global (fosgit-git-string "config" "--global" variable)))
     (when other
-      (--if-let (magit-git-string "config" other)
+      (--if-let (fosgit-git-string "config" other)
           (setq other (concat other ":" it))
         (setq other nil)))
     (concat
-     (propertize "[" 'face 'magit-popup-disabled-argument)
+     (propertize "[" 'face 'fosgit-popup-disabled-argument)
      (mapconcat
       (lambda (choice)
         (propertize choice 'face (if (equal choice local)
-                                     'magit-popup-option-value
-                                   'magit-popup-disabled-argument)))
+                                     'fosgit-popup-option-value
+                                   'fosgit-popup-disabled-argument)))
       choices
-      (propertize "|" 'face 'magit-popup-disabled-argument))
+      (propertize "|" 'face 'fosgit-popup-disabled-argument))
      (when (or global other default)
        (concat
-        (propertize "|" 'face 'magit-popup-disabled-argument)
+        (propertize "|" 'face 'fosgit-popup-disabled-argument)
         (cond (global
                (propertize (concat "global:" global)
                            'face (cond (local
-                                        'magit-popup-disabled-argument)
+                                        'fosgit-popup-disabled-argument)
                                        ((member global choices)
-                                        'magit-popup-option-value)
+                                        'fosgit-popup-option-value)
                                        (t
                                         'font-lock-warning-face))))
               (other
                (propertize other
                            'face (if local
-                                     'magit-popup-disabled-argument
-                                   'magit-popup-option-value)))
+                                     'fosgit-popup-disabled-argument
+                                   'fosgit-popup-option-value)))
               (default
                (propertize (concat "default:" default)
                            'face (if local
-                                     'magit-popup-disabled-argument
-                                   'magit-popup-option-value))))))
-     (propertize "]" 'face 'magit-popup-disabled-argument))))
+                                     'fosgit-popup-disabled-argument
+                                   'fosgit-popup-option-value))))))
+     (propertize "]" 'face 'fosgit-popup-disabled-argument))))
 
-(defun magit-popup-format-action-button (type ev)
-  (let* ((dsc (magit-popup-event-dsc ev))
+(defun fosgit-popup-format-action-button (type ev)
+  (let* ((dsc (fosgit-popup-event-dsc ev))
          (fun (and (functionp dsc) dsc)))
     (when fun
       (setq dsc
             (-when-let (branch (funcall fun))
               (if (next-single-property-change 0 'face (concat "0" branch))
                   branch
-                (magit-branch-set-face branch)))))
+                (fosgit-branch-set-face branch)))))
     (when dsc
       (list (format-spec
              (button-type-get type 'format)
-             `((?k . ,(propertize (magit-popup-event-keydsc ev)
-                                  'face 'magit-popup-key))
+             `((?k . ,(propertize (fosgit-popup-event-keydsc ev)
+                                  'face 'fosgit-popup-key))
                (?d . ,dsc)
                (?D . ,(if (and (not fun)
-                               (eq (magit-popup-event-fun ev)
-                                   (magit-popup-get :default-action)))
+                               (eq (fosgit-popup-event-fun ev)
+                                   (fosgit-popup-get :default-action)))
                           (propertize dsc 'face 'bold)
                         dsc))))
-            'type type 'event (magit-popup-event-key ev)))))
+            'type type 'event (fosgit-popup-event-key ev)))))
 
-(defun magit-popup-insert-command-section (type spec)
-  (magit-popup-insert-section
+(defun fosgit-popup-insert-command-section (type spec)
+  (fosgit-popup-insert-section
    type (mapcar (lambda (elt)
                   (list (car (where-is-internal (cadr elt)
                                                 (current-local-map)))
                         (car elt)))
                 spec)))
 
-(defun magit-popup-format-command-button (type elt)
-  (nconc (magit-popup-format-action-button
-          type (make-magit-popup-event :key (car  elt)
+(defun fosgit-popup-format-command-button (type elt)
+  (nconc (fosgit-popup-format-action-button
+          type (make-fosgit-popup-event :key (car  elt)
                                        :dsc (cadr elt)))
          (list 'function (lookup-key (current-local-map) (car elt)))))
 
 ;;; Utilities
 
-(defun magit-popup-import-file-args (args files)
+(defun fosgit-popup-import-file-args (args files)
   (if files
       (cons (concat "-- " (mapconcat #'identity files ",")) args)
     args))
 
-(defun magit-popup-export-file-args (args)
+(defun fosgit-popup-export-file-args (args)
   (let ((files (--first (string-prefix-p "-- " it) args)))
     (when files
       (setq args  (remove files args)
             files (split-string (substring files 3) ",")))
     (list args files)))
 
-;;; magit-popup.el ends soon
+;;; fosgit-popup.el ends soon
 
-(defconst magit-popup-font-lock-keywords
+(defconst fosgit-popup-font-lock-keywords
   (eval-when-compile
-    `((,(concat "(\\(magit-define-popup\\)\\_>"
+    `((,(concat "(\\(fosgit-define-popup\\)\\_>"
                 "[ \t'\(]*"
                 "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 'font-lock-keyword-face)
        (2 'font-lock-function-name-face nil t)))))
 
-(font-lock-add-keywords 'emacs-lisp-mode magit-popup-font-lock-keywords)
+(font-lock-add-keywords 'emacs-lisp-mode fosgit-popup-font-lock-keywords)
 
-(provide 'magit-popup)
+(provide 'fosgit-popup)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-;;; magit-popup.el ends here
+;;; fosgit-popup.el ends here

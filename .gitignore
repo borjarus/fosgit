@@ -1,3 +1,4 @@
+.gitignore
 *.elc
 *~
 /*.el
@@ -9,3 +10,4 @@
 /config.mk
 /lisp/magit-autoloads.el
 /lisp/magit-version.el
+/lisp/magit*

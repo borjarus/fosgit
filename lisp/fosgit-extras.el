@@ -1,4 +1,4 @@
-;;; magit-extras.el --- additional functionality for Magit  -*- lexical-binding: t -*-
+;;; fosgit-extras.el --- additional functionality for Magit  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2016  The Magit Project Contributors
 ;;
@@ -24,34 +24,34 @@
 
 ;;; Code:
 
-(require 'magit)
+(require 'fosgit)
 
-(defgroup magit-extras nil
-  "Additional functionality for Magit."
-  :group 'magit-extensions)
+(defgroup fosgit-extras nil
+  "Additional functionality for Fosgit."
+  :group 'fosgit-extensions)
 
 ;;; External Tools
 
-(defcustom magit-gitk-executable
+(defcustom fosgit-gitk-executable
   (or (and (eq system-type 'windows-nt)
            (let ((exe (expand-file-name
-                       "gitk" (file-name-nondirectory magit-git-executable))))
+                       "gitk" (file-name-nondirectory fosgit-git-executable))))
              (and (file-executable-p exe) exe)))
       (executable-find "gitk") "gitk")
   "The Gitk executable."
-  :group 'magit-extras
-  :set-after '(magit-git-executable)
+  :group 'fosgit-extras
+  :set-after '(fosgit-git-executable)
   :type 'string)
 
 ;;;###autoload
-(defun magit-run-git-gui ()
+(defun fosgit-run-git-gui ()
   "Run `git gui' for the current git repository."
   (interactive)
-  (magit-with-toplevel
-    (call-process magit-git-executable nil 0 nil "gui")))
+  (fosgit-with-toplevel
+    (call-process fosgit-git-executable nil 0 nil "gui")))
 
 ;;;###autoload
-(defun magit-run-git-gui-blame (commit filename &optional linenum)
+(defun fosgit-run-git-gui-blame (commit filename &optional linenum)
   "Run `git gui blame' on the given FILENAME and COMMIT.
 Interactively run it for the current file and the HEAD, with a
 prefix or when the current file cannot be determined let the user
@@ -61,42 +61,42 @@ blame to center around the line point is on."
    (let (revision filename)
      (when (or current-prefix-arg
                (not (setq revision "HEAD"
-                          filename (magit-file-relative-name nil 'tracked))))
-       (setq revision (magit-read-branch-or-commit "Blame from revision")
-             filename (magit-read-file-from-rev revision "Blame file")))
+                          filename (fosgit-file-relative-name nil 'tracked))))
+       (setq revision (fosgit-read-branch-or-commit "Blame from revision")
+             filename (fosgit-read-file-from-rev revision "Blame file")))
      (list revision filename
            (and (equal filename
                        (ignore-errors
-                         (magit-file-relative-name buffer-file-name)))
+                         (fosgit-file-relative-name buffer-file-name)))
                 (line-number-at-pos)))))
-  (magit-with-toplevel
-    (apply #'call-process magit-git-executable nil 0 nil "gui" "blame"
+  (fosgit-with-toplevel
+    (apply #'call-process fosgit-git-executable nil 0 nil "gui" "blame"
            `(,@(and linenum (list (format "--line=%d" linenum)))
              ,commit
              ,filename))))
 
 ;;;###autoload
-(defun magit-run-gitk ()
+(defun fosgit-run-gitk ()
   "Run `gitk' in the current repository."
   (interactive)
-  (call-process magit-gitk-executable nil 0))
+  (call-process fosgit-gitk-executable nil 0))
 
 ;;;###autoload
-(defun magit-run-gitk-branches ()
+(defun fosgit-run-gitk-branches ()
   "Run `gitk --branches' in the current repository."
   (interactive)
-  (call-process magit-gitk-executable nil 0 nil "--branches"))
+  (call-process fosgit-gitk-executable nil 0 nil "--branches"))
 
 ;;;###autoload
-(defun magit-run-gitk-all ()
+(defun fosgit-run-gitk-all ()
   "Run `gitk --all' in the current repository."
   (interactive)
-  (call-process magit-gitk-executable nil 0 nil "--all"))
+  (call-process fosgit-gitk-executable nil 0 nil "--all"))
 
 ;;; Clean
 
 ;;;###autoload
-(defun magit-clean (&optional arg)
+(defun fosgit-clean (&optional arg)
   "Remove untracked files from the working tree.
 With a prefix argument also remove ignored files,
 with two prefix arguments remove ignored files only.
@@ -107,23 +107,23 @@ with two prefix arguments remove ignored files only.
                                (1 "untracked")
                                (4 "untracked and ignored")
                                (_ "ignored"))))
-    (magit-wip-commit-before-change)
-    (magit-run-git "clean" "-f" "-d" (pcase arg (4 "-x") (16 "-X")))))
+    (fosgit-wip-commit-before-change)
+    (fosgit-run-git "clean" "-f" "-d" (pcase arg (4 "-x") (16 "-X")))))
 
-(put 'magit-clean 'disabled t)
+(put 'fosgit-clean 'disabled t)
 
 ;;; Gitignore
 
 ;;;###autoload
-(defun magit-gitignore (file-or-pattern &optional local)
+(defun fosgit-gitignore (file-or-pattern &optional local)
   "Instruct Git to ignore FILE-OR-PATTERN.
 With a prefix argument only ignore locally."
-  (interactive (list (magit-gitignore-read-pattern current-prefix-arg)
+  (interactive (list (fosgit-gitignore-read-pattern current-prefix-arg)
                      current-prefix-arg))
   (let ((gitignore
          (if local
-             (magit-git-dir (convert-standard-filename "info/exclude"))
-           (expand-file-name ".gitignore" (magit-toplevel)))))
+             (fosgit-git-dir (convert-standard-filename "info/exclude"))
+           (expand-file-name ".gitignore" (fosgit-toplevel)))))
     (make-directory (file-name-directory gitignore) t)
     (with-temp-buffer
       (when (file-exists-p gitignore)
@@ -135,17 +135,17 @@ With a prefix argument only ignore locally."
       (insert "\n")
       (write-region nil nil gitignore))
     (if local
-        (magit-refresh)
-      (magit-run-git "add" ".gitignore"))))
+        (fosgit-refresh)
+      (fosgit-run-git "add" ".gitignore"))))
 
 ;;;###autoload
-(defun magit-gitignore-locally (file-or-pattern)
+(defun fosgit-gitignore-locally (file-or-pattern)
   "Instruct Git to locally ignore FILE-OR-PATTERN."
-  (interactive (list (magit-gitignore-read-pattern t)))
-  (magit-gitignore file-or-pattern t))
+  (interactive (list (fosgit-gitignore-read-pattern t)))
+  (fosgit-gitignore file-or-pattern t))
 
-(defun magit-gitignore-read-pattern (local)
-  (let* ((default (magit-current-file))
+(defun fosgit-gitignore-read-pattern (local)
+  (let* ((default (fosgit-current-file))
          (choices
           (delete-dups
            (--mapcat
@@ -153,30 +153,30 @@ With a prefix argument only ignore locally."
                   (-when-let (ext (file-name-extension it))
                     (list (concat "/" (file-name-directory "foo") "*." ext)
                           (concat "*." ext))))
-            (magit-untracked-files)))))
+            (fosgit-untracked-files)))))
     (when default
       (setq default (concat "/" default))
       (unless (member default choices)
         (setq default (concat "*." (file-name-extension default)))
         (unless (member default choices)
           (setq default nil))))
-    (magit-completing-read (concat "File or pattern to ignore"
+    (fosgit-completing-read (concat "File or pattern to ignore"
                                    (and local " locally"))
                            choices nil nil nil nil default)))
 
 ;;; ChangeLog
 
 ;;;###autoload
-(defun magit-add-change-log-entry (&optional whoami file-name other-window)
+(defun fosgit-add-change-log-entry (&optional whoami file-name other-window)
   "Find change log file and add date entry and item for current change.
 This differs from `add-change-log-entry' (which see) in that
-it acts on the current hunk in a Magit buffer instead of on
+it acts on the current hunk in a Fosgit buffer instead of on
 a position in a file-visiting buffer."
   (interactive (list current-prefix-arg
                      (prompt-for-change-log-name)))
   (let (buf pos)
     (save-window-excursion
-      (call-interactively #'magit-diff-visit-file)
+      (call-interactively #'fosgit-diff-visit-file)
       (setq buf (current-buffer)
             pos (point)))
     (save-excursion
@@ -185,19 +185,19 @@ a position in a file-visiting buffer."
         (add-change-log-entry whoami file-name other-window)))))
 
 ;;;###autoload
-(defun magit-add-change-log-entry-other-window (&optional whoami file-name)
+(defun fosgit-add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add entry and item.
 This differs from `add-change-log-entry-other-window' (which see)
-in that it acts on the current hunk in a Magit buffer instead of
+in that it acts on the current hunk in a Fosgit buffer instead of
 on a position in a file-visiting buffer."
   (interactive (and current-prefix-arg
                     (list current-prefix-arg
                           (prompt-for-change-log-name))))
-  (magit-add-change-log-entry whoami file-name t))
+  (fosgit-add-change-log-entry whoami file-name t))
 
-;;; magit-extras.el ends soon
-(provide 'magit-extras)
+;;; fosgit-extras.el ends soon
+(provide 'fosgit-extras)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-;;; magit-extras.el ends here
+;;; fosgit-extras.el ends here

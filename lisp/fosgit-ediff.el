@@ -1,4 +1,4 @@
-;;; magit-ediff.el --- Ediff extension for Magit  -*- lexical-binding: t -*-
+;;; fosgit-ediff.el --- Ediff extension for Magit  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(require 'magit)
+(require 'fosgit)
 
 (require 'ediff)
 (require 'smerge-mode)
@@ -35,55 +35,55 @@
 (defvar smerge-ediff-buf)
 (defvar smerge-ediff-windows)
 
-(defgroup magit-ediff nil
-  "Ediff support for Magit."
-  :group 'magit-extensions)
+(defgroup fosgit-ediff nil
+  "Ediff support for Fosgit."
+  :group 'fosgit-extensions)
 
-(unless (find-lisp-object-file-name 'magit-ediff-quit-hook 'defvar)
-  (add-hook 'magit-ediff-quit-hook 'magit-ediff-restore-previous-winconf)
-  (add-hook 'magit-ediff-quit-hook 'magit-ediff-cleanup-auxiliary-buffers))
-(defcustom magit-ediff-quit-hook
-  '(magit-ediff-cleanup-auxiliary-buffers
-    magit-ediff-restore-previous-winconf)
-  "Hooks to run after finishing Ediff, when that was invoked using Magit.
+(unless (find-lisp-object-file-name 'fosgit-ediff-quit-hook 'defvar)
+  (add-hook 'fosgit-ediff-quit-hook 'fosgit-ediff-restore-previous-winconf)
+  (add-hook 'fosgit-ediff-quit-hook 'fosgit-ediff-cleanup-auxiliary-buffers))
+(defcustom fosgit-ediff-quit-hook
+  '(fosgit-ediff-cleanup-auxiliary-buffers
+    fosgit-ediff-restore-previous-winconf)
+  "Hooks to run after finishing Ediff, when that was invoked using Fosgit.
 The hooks are run in the Ediff control buffer.  This is similar
-to `ediff-quit-hook' but takes the needs of Magit into account.
+to `ediff-quit-hook' but takes the needs of Fosgit into account.
 The `ediff-quit-hook' is ignored by Ediff sessions which were
-invoked using Magit."
-  :package-version '(magit . "2.2.0")
-  :group 'magit-ediff
+invoked using Fosgit."
+  :package-version '(fosgit . "2.2.0")
+  :group 'fosgit-ediff
   :type 'hook
-  :options '(magit-ediff-cleanup-auxiliary-buffers
-             magit-ediff-restore-previous-winconf))
+  :options '(fosgit-ediff-cleanup-auxiliary-buffers
+             fosgit-ediff-restore-previous-winconf))
 
-(defcustom magit-ediff-dwim-show-on-hunks nil
-  "Whether `magit-ediff-dwim' runs show variants on hunks.
-If non-nil, `magit-ediff-show-staged' or
-`magit-ediff-show-unstaged' are called based on what section the
-hunk is in.  Otherwise, `magit-ediff-dwim' runs
-`magit-ediff-stage' when point is on an uncommitted hunk."
-  :package-version '(magit . "2.2.0")
-  :group 'magit-ediff
+(defcustom fosgit-ediff-dwim-show-on-hunks nil
+  "Whether `fosgit-ediff-dwim' runs show variants on hunks.
+If non-nil, `fosgit-ediff-show-staged' or
+`fosgit-ediff-show-unstaged' are called based on what section the
+hunk is in.  Otherwise, `fosgit-ediff-dwim' runs
+`fosgit-ediff-stage' when point is on an uncommitted hunk."
+  :package-version '(fosgit . "2.2.0")
+  :group 'fosgit-ediff
   :type 'boolean)
 
-(defvar magit-ediff-previous-winconf nil)
+(defvar fosgit-ediff-previous-winconf nil)
 
-;;;###autoload (autoload 'magit-ediff-popup "magit-ediff" nil t)
-(magit-define-popup magit-ediff-popup
+;;;###autoload (autoload 'fosgit-ediff-popup "fosgit-ediff" nil t)
+(fosgit-define-popup fosgit-ediff-popup
   "Popup console for ediff commands."
-  'magit-diff nil nil
-  :actions '((?E "Dwim"          magit-ediff-dwim)
-             (?u "Show unstaged" magit-ediff-show-unstaged)
-             (?s "Stage"         magit-ediff-stage)
-             (?i "Show staged"   magit-ediff-show-staged)
-             (?m "Resolve"       magit-ediff-resolve)
-             (?w "Show worktree" magit-ediff-show-working-tree)
-             (?r "Diff range"    magit-ediff-compare)
-             (?c "Show commit"   magit-ediff-show-commit))
+  'fosgit-diff nil nil
+  :actions '((?E "Dwim"          fosgit-ediff-dwim)
+             (?u "Show unstaged" fosgit-ediff-show-unstaged)
+             (?s "Stage"         fosgit-ediff-stage)
+             (?i "Show staged"   fosgit-ediff-show-staged)
+             (?m "Resolve"       fosgit-ediff-resolve)
+             (?w "Show worktree" fosgit-ediff-show-working-tree)
+             (?r "Diff range"    fosgit-ediff-compare)
+             (?c "Show commit"   fosgit-ediff-show-commit))
   :max-action-columns 2)
 
 ;;;###autoload
-(defun magit-ediff-resolve (file)
+(defun fosgit-ediff-resolve (file)
   "Resolve outstanding conflicts in FILE using Ediff.
 FILE has to be relative to the top directory of the repository.
 
@@ -91,13 +91,13 @@ In the rare event that you want to manually resolve all
 conflicts, including those already resolved by Git, use
 `ediff-merge-revisions-with-ancestor'."
   (interactive
-   (let ((current  (magit-current-file))
-         (unmerged (magit-unmerged-files)))
+   (let ((current  (fosgit-current-file))
+         (unmerged (fosgit-unmerged-files)))
      (unless unmerged
        (user-error "There are no unresolved conflicts"))
-     (list (magit-completing-read "Resolve file" unmerged nil t nil nil
+     (list (fosgit-completing-read "Resolve file" unmerged nil t nil nil
                                   (car (member current unmerged))))))
-  (magit-with-toplevel
+  (fosgit-with-toplevel
     (with-current-buffer (find-file-noselect file)
       (smerge-ediff)
       (setq-local
@@ -116,26 +116,26 @@ conflicts, including those already resolved by Git, use
          (when (buffer-live-p ediff-buffer-C) (kill-buffer ediff-buffer-C))
          (when (buffer-live-p ediff-ancestor-buffer)
            (kill-buffer ediff-ancestor-buffer))
-         (let ((magit-ediff-previous-winconf smerge-ediff-windows))
-           (run-hooks 'magit-ediff-quit-hook)))))))
+         (let ((fosgit-ediff-previous-winconf smerge-ediff-windows))
+           (run-hooks 'fosgit-ediff-quit-hook)))))))
 
 ;;;###autoload
-(defun magit-ediff-stage (file)
+(defun fosgit-ediff-stage (file)
   "Stage and unstage changes to FILE using Ediff.
 FILE has to be relative to the top directory of the repository."
   (interactive
-   (list (magit-completing-read "Selectively stage file" nil
-                                (magit-tracked-files) nil nil nil
-                                (magit-current-file))))
-  (magit-with-toplevel
+   (list (fosgit-completing-read "Selectively stage file" nil
+                                (fosgit-tracked-files) nil nil nil
+                                (fosgit-current-file))))
+  (fosgit-with-toplevel
     (let* ((conf (current-window-configuration))
-           (bufA (magit-get-revision-buffer "HEAD" file))
+           (bufA (fosgit-get-revision-buffer "HEAD" file))
            (bufB (get-buffer (concat file ".~{index}~")))
            (bufBrw (and bufB (with-current-buffer bufB (not buffer-read-only))))
            (bufC (get-file-buffer file)))
       (ediff-buffers3
-       (or bufA (magit-find-file-noselect "HEAD" file))
-       (with-current-buffer (magit-find-file-index-noselect file t)
+       (or bufA (fosgit-find-file-noselect "HEAD" file))
+       (with-current-buffer (fosgit-find-file-index-noselect file t)
          (setq buffer-read-only nil)
          (current-buffer))
        (or bufC (find-file-noselect file))
@@ -146,7 +146,7 @@ FILE has to be relative to the top directory of the repository."
               (and (buffer-live-p ediff-buffer-B)
                    (buffer-modified-p ediff-buffer-B)
                    (with-current-buffer ediff-buffer-B
-                     (magit-update-index)))
+                     (fosgit-update-index)))
               (and (buffer-live-p ediff-buffer-C)
                    (buffer-modified-p ediff-buffer-C)
                    (with-current-buffer ediff-buffer-C
@@ -159,12 +159,12 @@ FILE has to be relative to the top directory of the repository."
                                        (setq buffer-read-only t))))
                   '((ediff-kill-buffer-carefully ediff-buffer-B)))
               ,@(unless bufC '((ediff-kill-buffer-carefully ediff-buffer-C)))
-              (let ((magit-ediff-previous-winconf ,conf))
-                (run-hooks 'magit-ediff-quit-hook))))))
+              (let ((fosgit-ediff-previous-winconf ,conf))
+                (run-hooks 'fosgit-ediff-quit-hook))))))
        'ediff-buffers3))))
 
 ;;;###autoload
-(defun magit-ediff-compare (revA revB fileA fileB)
+(defun fosgit-ediff-compare (revA revB fileA fileB)
   "Compare REVA:FILEA with REVB:FILEB using Ediff.
 
 FILEA and FILEB have to be relative to the top directory of the
@@ -176,24 +176,24 @@ line of the region.  With a prefix argument, instead of diffing
 the revisions, choose a revision to view changes along, starting
 at the common ancestor of both revisions (i.e., use a \"...\"
 range)."
-  (interactive (-let [(revA revB) (magit-ediff-compare--read-revisions
+  (interactive (-let [(revA revB) (fosgit-ediff-compare--read-revisions
                                    nil current-prefix-arg)]
                  (nconc (list revA revB)
-                        (magit-ediff-compare--read-files revA revB))))
-  (magit-with-toplevel
+                        (fosgit-ediff-compare--read-files revA revB))))
+  (fosgit-with-toplevel
     (let ((conf (current-window-configuration))
           (bufA (if revA
-                    (magit-get-revision-buffer revA fileA)
+                    (fosgit-get-revision-buffer revA fileA)
                   (get-file-buffer fileA)))
           (bufB (if revB
-                    (magit-get-revision-buffer revB fileB)
+                    (fosgit-get-revision-buffer revB fileB)
                   (get-file-buffer fileB))))
       (ediff-buffers
        (or bufA (if revA
-                    (magit-find-file-noselect revA fileA)
+                    (fosgit-find-file-noselect revA fileA)
                   (find-file-noselect fileA)))
        (or bufB (if revB
-                    (magit-find-file-noselect revB fileB)
+                    (fosgit-find-file-noselect revB fileB)
                   (find-file-noselect fileB)))
        `((lambda ()
            (setq-local
@@ -201,151 +201,151 @@ range)."
             (lambda ()
               ,@(unless bufA '((ediff-kill-buffer-carefully ediff-buffer-A)))
               ,@(unless bufB '((ediff-kill-buffer-carefully ediff-buffer-B)))
-              (let ((magit-ediff-previous-winconf ,conf))
-                (run-hooks 'magit-ediff-quit-hook))))))
+              (let ((fosgit-ediff-previous-winconf ,conf))
+                (run-hooks 'fosgit-ediff-quit-hook))))))
        'ediff-revision))))
 
-(defun magit-ediff-compare--read-revisions (&optional arg mbase)
-  (let ((input (or arg (magit-diff-read-range-or-commit "Compare range or commit"
+(defun fosgit-ediff-compare--read-revisions (&optional arg mbase)
+  (let ((input (or arg (fosgit-diff-read-range-or-commit "Compare range or commit"
                                                         nil mbase)))
         revA revB)
-    (if (string-match magit-range-re input)
+    (if (string-match fosgit-range-re input)
         (progn (setq revA (or (match-string 1 input) "HEAD")
                      revB (or (match-string 3 input) "HEAD"))
                (when (string= (match-string 2 input) "...")
-                 (setq revA (magit-git-string "merge-base" revA revB))))
+                 (setq revA (fosgit-git-string "merge-base" revA revB))))
       (setq revA input))
     (list revA revB)))
 
-(defun magit-ediff-compare--read-files (revA revB &optional fileB)
+(defun fosgit-ediff-compare--read-files (revA revB &optional fileB)
   (unless fileB
-    (setq fileB (magit-read-file-choice
+    (setq fileB (fosgit-read-file-choice
                  (format "File to compare between %s and %s"
                          revA (or revB "the working tree"))
-                 (magit-changed-files revA revB)
+                 (fosgit-changed-files revA revB)
                  (format "No changed files between %s and %s"
                          revA (or revB "the working tree")))))
-  (list (or (car (member fileB (magit-revision-files revA)))
-            (cdr (assoc fileB (magit-renamed-files revB revA)))
-            (magit-read-file-choice
+  (list (or (car (member fileB (fosgit-revision-files revA)))
+            (cdr (assoc fileB (fosgit-renamed-files revB revA)))
+            (fosgit-read-file-choice
              (format "File in %s to compare with %s in %s"
                      revA fileB (or revB "the working tree"))
-             (magit-changed-files revB revA)
+             (fosgit-changed-files revB revA)
              (format "File in %s to compare with %s in %s"
                      revA fileB (or revB "the working tree"))))
         fileB))
 
 ;;;###autoload
-(defun magit-ediff-dwim ()
+(defun fosgit-ediff-dwim ()
   "Compare, stage, or resolve using Ediff.
 This command tries to guess what file, and what commit or range
 the user wants to compare, stage, or resolve using Ediff.  It
 might only be able to guess either the file, or range or commit,
 in which case the user is asked about the other.  It might not
-always guess right, in which case the appropriate `magit-ediff-*'
+always guess right, in which case the appropriate `fosgit-ediff-*'
 command has to be used explicitly.  If it cannot read the user's
 mind at all, then it asks the user for a command to run."
   (interactive)
-  (magit-section-case
+  (fosgit-section-case
     (hunk (save-excursion
-            (goto-char (magit-section-start (magit-section-parent it)))
-            (magit-ediff-dwim)))
+            (goto-char (fosgit-section-start (fosgit-section-parent it)))
+            (fosgit-ediff-dwim)))
     (t
-     (let ((range (magit-diff--dwim))
-           (file (magit-current-file))
+     (let ((range (fosgit-diff--dwim))
+           (file (fosgit-current-file))
            command revA revB)
        (pcase range
-         ((and (guard (not magit-ediff-dwim-show-on-hunks))
+         ((and (guard (not fosgit-ediff-dwim-show-on-hunks))
                (or `unstaged `staged))
-          (setq command (if (magit-anything-unmerged-p)
-                            #'magit-ediff-resolve
-                          #'magit-ediff-stage)))
-         (`unstaged (setq command #'magit-ediff-show-unstaged))
-         (`staged (setq command #'magit-ediff-show-staged))
+          (setq command (if (fosgit-anything-unmerged-p)
+                            #'fosgit-ediff-resolve
+                          #'fosgit-ediff-stage)))
+         (`unstaged (setq command #'fosgit-ediff-show-unstaged))
+         (`staged (setq command #'fosgit-ediff-show-staged))
          (`(commit . ,value)
-          (setq command #'magit-ediff-show-commit
+          (setq command #'fosgit-ediff-show-commit
                 revB value))
          ((pred stringp)
-          (-let [(a b) (magit-ediff-compare--read-revisions range)]
-            (setq command #'magit-ediff-compare
+          (-let [(a b) (fosgit-ediff-compare--read-revisions range)]
+            (setq command #'fosgit-ediff-compare
                   revA a
                   revB b)))
          (_
-          (when (derived-mode-p 'magit-diff-mode)
-            (pcase (magit-diff-type)
-              (`committed (-let [(a b) (magit-ediff-compare--read-revisions
-                                        (car magit-refresh-args))]
+          (when (derived-mode-p 'fosgit-diff-mode)
+            (pcase (fosgit-diff-type)
+              (`committed (-let [(a b) (fosgit-ediff-compare--read-revisions
+                                        (car fosgit-refresh-args))]
                             (setq revA a revB b)))
-              ((guard (not magit-ediff-dwim-show-on-hunks))
-               (setq command #'magit-ediff-stage))
-              (`unstaged  (setq command #'magit-ediff-show-unstaged))
-              (`staged    (setq command #'magit-ediff-show-staged))
+              ((guard (not fosgit-ediff-dwim-show-on-hunks))
+               (setq command #'fosgit-ediff-stage))
+              (`unstaged  (setq command #'fosgit-ediff-show-unstaged))
+              (`staged    (setq command #'fosgit-ediff-show-staged))
               (`undefined (setq command nil))
               (_          (setq command nil))))))
        (cond ((not command)
               (call-interactively
-               (magit-read-char-case
+               (fosgit-read-char-case
                    "Failed to read your mind; do you want to " t
-                 (?c "[c]ommit"  'magit-ediff-show-commit)
-                 (?r "[r]ange"   'magit-ediff-compare)
-                 (?s "[s]tage"   'magit-ediff-stage)
-                 (?v "resol[v]e" 'magit-ediff-resolve))))
-             ((eq command 'magit-ediff-compare)
-              (apply 'magit-ediff-compare revA revB
-                     (magit-ediff-compare--read-files revA revB file)))
-             ((eq command 'magit-ediff-show-commit)
-              (magit-ediff-show-commit revB))
+                 (?c "[c]ommit"  'fosgit-ediff-show-commit)
+                 (?r "[r]ange"   'fosgit-ediff-compare)
+                 (?s "[s]tage"   'fosgit-ediff-stage)
+                 (?v "resol[v]e" 'fosgit-ediff-resolve))))
+             ((eq command 'fosgit-ediff-compare)
+              (apply 'fosgit-ediff-compare revA revB
+                     (fosgit-ediff-compare--read-files revA revB file)))
+             ((eq command 'fosgit-ediff-show-commit)
+              (fosgit-ediff-show-commit revB))
              (file
               (funcall command file))
              (t
               (call-interactively command)))))))
 
 ;;;###autoload
-(defun magit-ediff-show-staged (file)
+(defun fosgit-ediff-show-staged (file)
   "Show staged changes using Ediff.
 
 This only allows looking at the changes; to stage, unstage,
-and discard changes using Ediff, use `magit-ediff-stage'.
+and discard changes using Ediff, use `fosgit-ediff-stage'.
 
 FILE must be relative to the top directory of the repository."
   (interactive
-   (list (magit-read-file-choice "Show staged changes for file"
-                                 (magit-staged-files)
+   (list (fosgit-read-file-choice "Show staged changes for file"
+                                 (fosgit-staged-files)
                                  "No staged files")))
   (let ((conf (current-window-configuration))
-        (bufA (magit-get-revision-buffer "HEAD" file))
+        (bufA (fosgit-get-revision-buffer "HEAD" file))
         (bufB (get-buffer (concat file ".~{index}~"))))
     (ediff-buffers
-     (or bufA (magit-find-file-noselect "HEAD" file))
-     (or bufB (magit-find-file-index-noselect file t))
+     (or bufA (fosgit-find-file-noselect "HEAD" file))
+     (or bufB (fosgit-find-file-index-noselect file t))
      `((lambda ()
          (setq-local
           ediff-quit-hook
           (lambda ()
             ,@(unless bufA '((ediff-kill-buffer-carefully ediff-buffer-A)))
             ,@(unless bufB '((ediff-kill-buffer-carefully ediff-buffer-B)))
-            (let ((magit-ediff-previous-winconf ,conf))
-              (run-hooks 'magit-ediff-quit-hook))))))
+            (let ((fosgit-ediff-previous-winconf ,conf))
+              (run-hooks 'fosgit-ediff-quit-hook))))))
      'ediff-buffers)))
 
 ;;;###autoload
-(defun magit-ediff-show-unstaged (file)
+(defun fosgit-ediff-show-unstaged (file)
   "Show unstaged changes using Ediff.
 
 This only allows looking at the changes; to stage, unstage,
-and discard changes using Ediff, use `magit-ediff-stage'.
+and discard changes using Ediff, use `fosgit-ediff-stage'.
 
 FILE must be relative to the top directory of the repository."
   (interactive
-   (list (magit-read-file-choice "Show unstaged changes for file"
-                                 (magit-modified-files)
+   (list (fosgit-read-file-choice "Show unstaged changes for file"
+                                 (fosgit-modified-files)
                                  "No unstaged files")))
-  (magit-with-toplevel
+  (fosgit-with-toplevel
     (let ((conf (current-window-configuration))
           (bufA (get-buffer (concat file ".~{index}~")))
           (bufB (get-file-buffer file)))
       (ediff-buffers
-       (or bufA (magit-find-file-index-noselect file t))
+       (or bufA (fosgit-find-file-index-noselect file t))
        (or bufB (find-file-noselect file))
        `((lambda ()
            (setq-local
@@ -353,24 +353,24 @@ FILE must be relative to the top directory of the repository."
             (lambda ()
               ,@(unless bufA '((ediff-kill-buffer-carefully ediff-buffer-A)))
               ,@(unless bufB '((ediff-kill-buffer-carefully ediff-buffer-B)))
-              (let ((magit-ediff-previous-winconf ,conf))
-                (run-hooks 'magit-ediff-quit-hook))))))
+              (let ((fosgit-ediff-previous-winconf ,conf))
+                (run-hooks 'fosgit-ediff-quit-hook))))))
        'ediff-buffers))))
 
 ;;;###autoload
-(defun magit-ediff-show-working-tree (file)
+(defun fosgit-ediff-show-working-tree (file)
   "Show changes between HEAD and working tree using Ediff.
 FILE must be relative to the top directory of the repository."
   (interactive
-   (list (magit-read-file-choice "Show changes in file"
-                                 (magit-changed-files "HEAD")
+   (list (fosgit-read-file-choice "Show changes in file"
+                                 (fosgit-changed-files "HEAD")
                                  "No changed files")))
-  (magit-with-toplevel
+  (fosgit-with-toplevel
     (let ((conf (current-window-configuration))
-          (bufA (magit-get-revision-buffer "HEAD" file))
+          (bufA (fosgit-get-revision-buffer "HEAD" file))
           (bufB (get-file-buffer file)))
       (ediff-buffers
-       (or bufA (magit-find-file-noselect "HEAD" file))
+       (or bufA (fosgit-find-file-noselect "HEAD" file))
        (or bufB (find-file-noselect file))
        `((lambda ()
            (setq-local
@@ -378,21 +378,21 @@ FILE must be relative to the top directory of the repository."
             (lambda ()
               ,@(unless bufA '((ediff-kill-buffer-carefully ediff-buffer-A)))
               ,@(unless bufB '((ediff-kill-buffer-carefully ediff-buffer-B)))
-              (let ((magit-ediff-previous-winconf ,conf))
-                (run-hooks 'magit-ediff-quit-hook))))))
+              (let ((fosgit-ediff-previous-winconf ,conf))
+                (run-hooks 'fosgit-ediff-quit-hook))))))
        'ediff-buffers))))
 
 ;;;###autoload
-(defun magit-ediff-show-commit (commit)
+(defun fosgit-ediff-show-commit (commit)
   "Show changes introduced by COMMIT using Ediff."
-  (interactive (list (magit-read-branch-or-commit "Revision")))
+  (interactive (list (fosgit-read-branch-or-commit "Revision")))
   (let ((revA (concat commit "^"))
         (revB commit))
-    (apply #'magit-ediff-compare
+    (apply #'fosgit-ediff-compare
            revA revB
-           (magit-ediff-compare--read-files revA revB (magit-current-file)))))
+           (fosgit-ediff-compare--read-files revA revB (fosgit-current-file)))))
 
-(defun magit-ediff-cleanup-auxiliary-buffers ()
+(defun fosgit-ediff-cleanup-auxiliary-buffers ()
   (let* ((ctl-buf ediff-control-buffer)
          (ctl-win (ediff-get-visible-buffer-window ctl-buf))
          (ctl-frm ediff-control-frame)
@@ -420,12 +420,12 @@ FILE must be relative to the top directory of the repository."
     (when (frame-live-p main-frame)
       (select-frame main-frame))))
 
-(defun magit-ediff-restore-previous-winconf ()
-  (set-window-configuration magit-ediff-previous-winconf))
+(defun fosgit-ediff-restore-previous-winconf ()
+  (set-window-configuration fosgit-ediff-previous-winconf))
 
-;;; magit-ediff.el ends soon
-(provide 'magit-ediff)
+;;; fosgit-ediff.el ends soon
+(provide 'fosgit-ediff)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-;;; magit-ediff.el ends here
+;;; fosgit-ediff.el ends here

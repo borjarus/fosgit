@@ -1,4 +1,4 @@
-;;; magit-core.el --- core functionality  -*- lexical-binding: t -*-
+;;; fosgit-core.el --- core functionality  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
@@ -30,48 +30,48 @@
 
 ;;; Code:
 
-(require 'magit-utils)
-(require 'magit-section)
-(require 'magit-git)
-(require 'magit-mode)
-(require 'magit-popup)
-(require 'magit-process)
-(require 'magit-autorevert)
+(require 'fosgit-utils)
+(require 'fosgit-section)
+(require 'fosgit-git)
+(require 'fosgit-mode)
+(require 'fosgit-popup)
+(require 'fosgit-process)
+(require 'fosgit-autorevert)
 
-(defgroup magit nil
+(defgroup fosgit nil
   "Controlling Git from Emacs."
   :group 'tools)
 
-(defgroup magit-commands nil
+(defgroup fosgit-commands nil
   "Options controlling behavior of certain commands."
-  :group 'magit)
+  :group 'fosgit)
 
-(defgroup magit-modes nil
-  "Modes used or provided by Magit."
-  :group 'magit)
+(defgroup fosgit-modes nil
+  "Modes used or provided by Fosgit."
+  :group 'fosgit)
 
-(defgroup magit-extensions nil
-  "Extensions to Magit."
-  :group 'magit)
+(defgroup fosgit-extensions nil
+  "Extensions to Fosgit."
+  :group 'fosgit)
 
-(defgroup magit-faces nil
-  "Faces used by Magit."
-  :group 'magit
+(defgroup fosgit-faces nil
+  "Faces used by Fosgit."
+  :group 'fosgit
   :group 'faces)
 
-(custom-add-to-group 'magit-modes   'magit-popup       'custom-group)
-(custom-add-to-group 'magit-faces   'magit-popup-faces 'custom-group)
-(custom-add-to-group 'magit-modes   'git-commit        'custom-group)
-(custom-add-to-group 'magit-faces   'git-commit-faces  'custom-group)
-(custom-add-to-group 'magit-modes   'git-rebase        'custom-group)
-(custom-add-to-group 'magit-faces   'git-rebase-faces  'custom-group)
-(custom-add-to-group 'magit-process 'with-editor       'custom-group)
+(custom-add-to-group 'fosgit-modes   'fosgit-popup       'custom-group)
+(custom-add-to-group 'fosgit-faces   'fosgit-popup-faces 'custom-group)
+(custom-add-to-group 'fosgit-modes   'git-commit        'custom-group)
+(custom-add-to-group 'fosgit-faces   'git-commit-faces  'custom-group)
+(custom-add-to-group 'fosgit-modes   'git-rebase        'custom-group)
+(custom-add-to-group 'fosgit-faces   'git-rebase-faces  'custom-group)
+(custom-add-to-group 'fosgit-process 'with-editor       'custom-group)
 
-(custom-add-to-group 'magit 'vc-follow-symlinks 'custom-variable)
+(custom-add-to-group 'fosgit 'vc-follow-symlinks 'custom-variable)
 
-;;; magit-core.el ends soon
-(provide 'magit-core)
+;;; fosgit-core.el ends soon
+(provide 'fosgit-core)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-;;; magit-core.el ends here
+;;; fosgit-core.el ends here

@@ -124,7 +124,7 @@
 
 (defvar flyspell-generic-check-word-predicate)
 
-(declare-function magit-expand-git-file-name 'magit-git)
+(declare-function fosgit-expand-git-file-name 'fosgit-git)
 
 ;;; Options
 ;;;; Variables
@@ -363,10 +363,10 @@ usually honor this wish and return non-nil."
   (--when-let
       (and (eq system-type 'windows-nt)
            (not (file-accessible-directory-p default-directory))
-           (if (require 'magit-git nil t)
+           (if (require 'fosgit-git nil t)
                ;; Emacs prepends a "c:".
-               (magit-expand-git-file-name (substring buffer-file-name 2))
-             ;; Fallback if we can't load `magit-git'.
+               (fosgit-expand-git-file-name (substring buffer-file-name 2))
+             ;; Fallback if we can't load `fosgit-git'.
              (and (string-match "\\`[a-z]:/\\(cygdrive/\\)?\\([a-z]\\)/\\(.*\\)"
                                 buffer-file-name)
                   (concat (match-string 2 buffer-file-name) ":/"

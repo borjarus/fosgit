@@ -61,7 +61,7 @@
   ;; wrappers "cmd/git.exe" or "cmd/git.cmd", which are much slower
   ;; than using "bin/git.exe" directly.
   (or (and (eq system-type 'windows-nt)
-           (--when-let (executable-find "git.exe")
+           (--when-let (executable-find "fossil.exe")
              (or (ignore-errors
                    ;; Git for Windows 2.x provides cygpath so we can
                    ;; ask it for native paths.  Using an upper case
@@ -72,7 +72,7 @@
                            (process-lines
                             it "-c"
                             "alias.X=!x() { which \"$1\" | cygpath -mf -; }; x"
-                            "X" "git"))
+                            "X" "fossil"))
                      (setq fosgit-git-environment
                            (list (concat "PATH="
                                          (car (process-lines
@@ -83,12 +83,12 @@
                  (let ((alt (directory-file-name (file-name-directory it))))
                    (if (and (equal (file-name-nondirectory alt) "cmd")
                             (setq alt (expand-file-name
-                                       (convert-standard-filename "bin/git.exe")
+                                       (convert-standard-filename "bin/fossil.exe")
                                        (file-name-directory alt)))
                             (file-executable-p alt))
                        alt
                      it)))))
-      "git")
+      "fossil")
   "The Git executable used by Fosgit."
   :group 'fosgit-process
   :type 'string)
